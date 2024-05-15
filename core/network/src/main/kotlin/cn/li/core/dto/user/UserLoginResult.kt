@@ -1,3 +1,9 @@
 package cn.li.core.dto.user
 
-data class UserLoginResult()
+/**
+ * 用户登录的返回结果
+ * */
+data class UserLoginResult(
+    val id: Int,
+    val token: String
+)

@@ -4,7 +4,7 @@ plugins {
     `kotlin-dsl`
 }
 
-//group = "cn.li.floralwhisperpavilion.buildlogic"
+group = "cn.li.floralwhisperpavilion.buildlogic"
 
 // 配置 build-logic 的插件为 JDK 17
 java {

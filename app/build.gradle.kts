@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.li.android.application)
     alias(libs.plugins.li.android.application.compose)
-//    alias(libs.plugins.li.android.hilt)
+    alias(libs.plugins.li.android.hilt)
 }
 
 android {
@@ -39,7 +39,7 @@ dependencies {
     // ...
 
     // 依赖 core
-    // ...
+    implementation(project(":core:network"))
 
     // 外部依赖库
     implementation(libs.androidx.activity.compose)

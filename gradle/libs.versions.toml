@@ -2,7 +2,7 @@
 androidGradlePlugin = "8.3.2"
 androidTools= "31.4.0"
 agp = "8.4.0-alpha13"
-kotlin = "1.9.0"
+kotlin = "1.9.22"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
@@ -27,9 +27,8 @@ androidxNavigation = "2.8.0-alpha06"
 androidxComposeMaterial3Adaptive = "1.0.0-alpha10"
 androidDesugarJdkLibs = "2.0.4"
 androidxComposeRuntimeTracing = "1.0.0-beta01"
-
-
-
+secrets="2.0.1"
+jackson="2.17.1"
 
 [libraries]
 android-desugarJdkLibs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "androidDesugarJdkLibs" }
@@ -39,15 +38,20 @@ androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecyc
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
+# 序列化
+retrofit-jackson = { group = "com.squareup.retrofit2", name = "converter-jackson", version.ref="retrofit"}
+jackson-kotlin-module = {group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref="jackson"}
+
 # 协程
 kotlinx-coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version.ref = "kotlinxCoroutines" }
 
 # hilt
-androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidxHiltNavigationCompose" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 hilt-ext-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltExt" }
 hilt-ext-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltExt" }
+hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }
+androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidxHiltNavigationCompose" }
 
 # navigation
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidxNavigation" }
@@ -107,6 +111,7 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 room = { id = "androidx.room", version.ref = "room" }
+secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secrets" }
 
 
 # build-logic定义的插件

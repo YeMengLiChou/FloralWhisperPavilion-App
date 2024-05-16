@@ -1,4 +1,4 @@
-package cn.li.core.dto.user
+package cn.li.network.dto.user
 
 /**
  * 地址簿新增DTO

@@ -1,6 +1,6 @@
-package cn.li.core.di
+package cn.li.network.di
 
-import cn.li.core.network.BuildConfig
+import cn.li.network.network.BuildConfig
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -14,7 +14,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
-import kotlin.jvm.internal.Intrinsics.Kotlin
 
 
 /**

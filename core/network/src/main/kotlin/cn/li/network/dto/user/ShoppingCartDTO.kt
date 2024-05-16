@@ -1,4 +1,4 @@
-package cn.li.core.dto.user
+package cn.li.network.dto.user
 
 /**
  * 购物车添加商品信息DTO

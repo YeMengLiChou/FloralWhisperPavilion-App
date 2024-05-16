@@ -1,9 +1,9 @@
-package cn.li.core.api.user
+package cn.li.network.api.user
 
-import cn.li.core.dto.ApiResult
-import cn.li.core.dto.user.AddressBookAddDTO
-import cn.li.core.dto.user.AddressBookDTO
-import cn.li.core.dto.user.AddressBookUpdateDTO
+import cn.li.network.dto.ApiResult
+import cn.li.network.dto.user.AddressBookAddDTO
+import cn.li.network.dto.user.AddressBookDTO
+import cn.li.network.dto.user.AddressBookUpdateDTO
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET

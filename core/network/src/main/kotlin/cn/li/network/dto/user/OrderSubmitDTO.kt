@@ -1,4 +1,4 @@
-package cn.li.core.dto.user
+package cn.li.network.dto.user
 
 /**
  * 订单提交响应结果 DTO

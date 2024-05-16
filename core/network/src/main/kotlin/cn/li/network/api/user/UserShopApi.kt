@@ -1,4 +1,4 @@
-package cn.li.core.api.user
+package cn.li.network.api.user
 
 /**
  * 店铺相关api

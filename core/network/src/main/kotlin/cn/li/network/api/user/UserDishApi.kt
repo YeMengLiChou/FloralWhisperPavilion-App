@@ -1,10 +1,10 @@
-package cn.li.core.api.user
+package cn.li.network.api.user
 
-import cn.li.core.dto.ApiResult
-import cn.li.core.dto.user.CategoryDTO
-import cn.li.core.dto.user.DishDTO
-import cn.li.core.dto.user.DishSetMealDTO
-import cn.li.core.dto.user.SetMealDTO
+import cn.li.network.dto.ApiResult
+import cn.li.network.dto.user.CategoryDTO
+import cn.li.network.dto.user.DishDTO
+import cn.li.network.dto.user.DishSetMealDTO
+import cn.li.network.dto.user.SetMealDTO
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query

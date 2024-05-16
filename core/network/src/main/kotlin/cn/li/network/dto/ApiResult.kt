@@ -1,4 +1,4 @@
-package cn.li.core.dto
+package cn.li.network.dto
 
 /**
  * 自定义 api 结果类

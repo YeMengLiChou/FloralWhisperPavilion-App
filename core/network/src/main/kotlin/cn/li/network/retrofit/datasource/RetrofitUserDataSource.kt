@@ -1,10 +1,10 @@
-package cn.li.core.retrofit.datasource
+package cn.li.network.retrofit.datasource
 
-import cn.li.core.api.user.UserApi
-import cn.li.core.api.user.UserDataSource
-import cn.li.core.dto.ApiResult
-import cn.li.core.dto.user.UserLoginAndRegisterDTO
-import cn.li.core.dto.user.UserLoginResult
+import cn.li.network.api.user.UserApi
+import cn.li.network.api.user.UserDataSource
+import cn.li.network.dto.ApiResult
+import cn.li.network.dto.user.UserLoginAndRegisterDTO
+import cn.li.network.dto.user.UserLoginResult
 import retrofit2.Retrofit
 import javax.inject.Inject
 import javax.inject.Singleton

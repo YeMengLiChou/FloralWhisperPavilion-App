@@ -1,4 +1,4 @@
-package cn.li.core
+package cn.li.network
 
 import org.junit.Test
 

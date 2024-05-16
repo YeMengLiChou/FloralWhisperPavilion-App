@@ -1,4 +1,4 @@
-package cn.li.core.dto
+package cn.li.network.dto
 
 /**
  * Api 分页结果

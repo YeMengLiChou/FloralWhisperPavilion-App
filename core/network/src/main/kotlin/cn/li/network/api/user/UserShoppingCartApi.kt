@@ -1,8 +1,8 @@
-package cn.li.core.api.user
+package cn.li.network.api.user
 
-import cn.li.core.dto.ApiResult
-import cn.li.core.dto.user.ShoppingCartAddDTO
-import cn.li.core.dto.user.ShoppingCartDTO
+import cn.li.network.dto.ApiResult
+import cn.li.network.dto.user.ShoppingCartAddDTO
+import cn.li.network.dto.user.ShoppingCartDTO
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET

@@ -1,10 +1,10 @@
-package cn.li.core.api.user
+package cn.li.network.api.user
 
-import cn.li.core.dto.ApiPagination
-import cn.li.core.dto.ApiResult
-import cn.li.core.dto.user.OrderDetailDTO
-import cn.li.core.dto.user.OrderSubmitDTO
-import cn.li.core.dto.user.OrderSubmitResultDTO
+import cn.li.network.dto.ApiPagination
+import cn.li.network.dto.ApiResult
+import cn.li.network.dto.user.OrderDetailDTO
+import cn.li.network.dto.user.OrderSubmitDTO
+import cn.li.network.dto.user.OrderSubmitResultDTO
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST

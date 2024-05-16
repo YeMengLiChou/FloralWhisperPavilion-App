@@ -1,8 +1,8 @@
-package cn.li.core.api.user
+package cn.li.network.api.user
 
-import cn.li.core.dto.ApiResult
-import cn.li.core.dto.user.UserLoginAndRegisterDTO
-import cn.li.core.dto.user.UserLoginResult
+import cn.li.network.dto.ApiResult
+import cn.li.network.dto.user.UserLoginAndRegisterDTO
+import cn.li.network.dto.user.UserLoginResult
 import retrofit2.http.Body
 import retrofit2.http.POST
 

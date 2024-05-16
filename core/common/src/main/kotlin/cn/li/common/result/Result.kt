@@ -38,7 +38,30 @@ sealed interface Result<out T> {
  * 2. 在有异常时 [catch] 返回 [Result.Error]，表示请求失败
  * 3. 在获得响应时进行转换 [map]，返回 [Result.Success]，表示请求成功
  *
- * @sample sampleFlowUsage
+ * ```
+ *     flow {
+ *         // 模拟网络请求的返回结果
+ *         emit(10)
+ *         // 模拟请求出错
+ *         throw Exception()
+ *     }
+ *         .asResult()
+ *         .collect {
+ *             when(it) {
+ *                 is Result.Success -> {
+ *                     // 处理成功响应的结果
+ *                     it.data
+ *                 }
+ *                 is Result.Loading -> {
+ *                     // 加载中....
+ *                 }
+ *                 is Result.Error -> {
+ *                     // 处理失败响应的异常
+ *                     it.exception
+ *                 }
+ *             }
+ *         }
+ * ```
  * */
 fun <T> Flow<T>.asResult(): Flow<Result<T>> = map<T, Result<T>> {
     Result.Success(it)
@@ -46,33 +69,4 @@ fun <T> Flow<T>.asResult(): Flow<Result<T>> = map<T, Result<T>> {
     Result.Loading
 }.catch {
     Result.Error(it)
-}
-
-
-/**
- * 例子代码
- * */
-internal suspend fun sampleFlowUsage() = runBlocking {
-    flow {
-        // 模拟网络请求的返回结果
-        emit(10)
-        // 模拟请求出错
-        throw Exception()
-    }
-        .asResult()
-        .collect {
-            when(it) {
-                is Result.Success -> {
-                    // 处理成功响应的结果
-                    it.data
-                }
-                is Result.Loading -> {
-                    // 加载中....
-                }
-                is Result.Error -> {
-                    // 处理失败响应的异常
-                    it.exception
-                }
-            }
-        }
 }

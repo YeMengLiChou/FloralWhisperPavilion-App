@@ -1,0 +1,1 @@
+`xx.proto` 文件是基于 `protocol buffers` 语言，生成对应的 `java` 和 `kotlin` 类

@@ -1,6 +1,6 @@
 [versions]
 androidGradlePlugin = "8.3.2"
-androidTools= "31.4.0"
+androidTools = "31.4.0"
 agp = "8.4.0-alpha13"
 kotlin = "1.9.22"
 coreKtx = "1.13.1"
@@ -27,8 +27,12 @@ androidxNavigation = "2.8.0-alpha06"
 androidxComposeMaterial3Adaptive = "1.0.0-alpha10"
 androidDesugarJdkLibs = "2.0.4"
 androidxComposeRuntimeTracing = "1.0.0-beta01"
-secrets="2.0.1"
-jackson="2.17.1"
+secrets = "2.0.1"
+jackson = "2.17.1"
+androidxDataStore = "1.1.1"
+protobufPlugin = "0.9.4"
+protobuf = "3.25.2"
+
 
 [libraries]
 android-desugarJdkLibs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "androidDesugarJdkLibs" }
@@ -39,8 +43,8 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 # 序列化
-retrofit-jackson = { group = "com.squareup.retrofit2", name = "converter-jackson", version.ref="retrofit"}
-jackson-kotlin-module = {group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref="jackson"}
+retrofit-jackson = { group = "com.squareup.retrofit2", name = "converter-jackson", version.ref = "retrofit" }
+jackson-kotlin-module = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
 
 # 协程
 kotlinx-coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version.ref = "kotlinxCoroutines" }
@@ -78,6 +82,9 @@ okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor",
 retrofit-core = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 
 # 数据库
+androidx-dataStore-core = { group = "androidx.datastore", name = "datastore", version.ref = "androidxDataStore" }
+protobuf-kotlin-lite = { group = "com.google.protobuf", name = "protobuf-kotlin-lite", version.ref = "protobuf" }
+protobuf-protoc = { group = "com.google.protobuf", name = "protoc", version.ref = "protobuf" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
@@ -112,6 +119,7 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 room = { id = "androidx.room", version.ref = "room" }
 secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secrets" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
 
 
 # build-logic定义的插件

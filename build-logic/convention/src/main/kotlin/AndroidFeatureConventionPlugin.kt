@@ -9,7 +9,8 @@ class AndroidFeatureConventionPlugin: Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             pluginManager.apply {
-//                apply("")
+                apply("li.android.library")
+                apply("li.android.hilt")
             }
             extensions.configure<LibraryExtension> {
                 defaultConfig {
@@ -18,14 +19,11 @@ class AndroidFeatureConventionPlugin: Plugin<Project> {
                 }
             }
             dependencies {
-//                add("implementation", project(":core:ui"))
-//                add("implementation", project(":core:designsystem"))
-//
-//                add("implementation", libs.findLibrary("androidx.hilt.navigation.compose").get())
-//                add("implementation", libs.findLibrary("androidx.lifecycle.runtimeCompose").get())
-//                add("implementation", libs.findLibrary("androidx.lifecycle.viewModelCompose").get())
-//                add("implementation", libs.findLibrary("androidx.tracing.ktx").get())
+                add("implementation", project(":core:ui"))
 
+                add("implementation", libs.findLibrary("androidx.hilt.navigation.compose").get())
+                add("implementation", libs.findLibrary("androidx.lifecycle.runtimeCompose").get())
+                add("implementation", libs.findLibrary("androidx.lifecycle.viewModelCompose").get())
             }
         }
     }

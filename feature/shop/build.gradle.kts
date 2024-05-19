@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "cn.li.feature.home"
+    namespace = "cn.li.feature.shop"
 }
 
 dependencies {

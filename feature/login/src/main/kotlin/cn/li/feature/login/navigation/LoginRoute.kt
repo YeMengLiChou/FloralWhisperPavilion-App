@@ -19,6 +19,7 @@ fun LoginRoute(
     LoginScreen(
         uiState = loginUiState,
         onLogin = viewModel::login,
+        onBackClick = onPressBack,
         modifier = modifier
     )
 }

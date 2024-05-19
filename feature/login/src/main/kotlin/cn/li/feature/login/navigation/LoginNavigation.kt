@@ -18,7 +18,9 @@ fun NavGraphBuilder.loginScreen(
     composable(
         route = LOGIN_ROUTE,
     ) {
-        LoginRoute(onPressBack = onBackClick)
+        LoginRoute(
+            onPressBack = onBackClick,
+        )
     }
 }
 

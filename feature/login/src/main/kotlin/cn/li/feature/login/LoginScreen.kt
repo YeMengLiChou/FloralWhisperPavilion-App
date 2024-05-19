@@ -1,11 +1,14 @@
 package cn.li.feature.login
 
+import android.widget.Toast
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +17,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
@@ -26,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.li.core.ui.icon.FwpIcons
@@ -40,6 +45,62 @@ internal fun LoginScreen(
     modifier: Modifier = Modifier,
     onLogin: ((username: String, password: String) -> Unit) = { _, _ -> },
     onBackClick: () -> Unit = {}
+) {
+
+    // 用于显示信息
+    val snackbarHostState = remember {
+        SnackbarHostState()
+    }
+
+
+    // 当 uiState 发生改变时，需要重新启动协程，进行判断
+    LaunchedEffect(key1 = uiState) {
+        when (uiState) {
+            is LoginUiState.Failed -> {
+                snackbarHostState.showSnackbar(
+                    uiState.tips ?: "登录失败",
+                    duration = SnackbarDuration.Long,
+                )
+            }
+
+            is LoginUiState.Success -> {
+                snackbarHostState.showSnackbar(
+                    message = "登录成功",
+                    duration = SnackbarDuration.Short,
+                )
+                // 登录成功后返回上一级
+                onBackClick()
+            }
+            is LoginUiState.Loading -> {
+                snackbarHostState.showSnackbar(
+                    message = "登录中...",
+                    duration = SnackbarDuration.Indefinite,
+                )
+            }
+            else -> {}
+        }
+
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        LoginForm(
+            onBackClick = onBackClick,
+            onLogin = onLogin,
+            snackbarHoststate = snackbarHostState
+        )
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter).imePadding()
+        )
+    }
+}
+
+@Composable
+private fun LoginForm(
+    modifier: Modifier = Modifier,
+    onBackClick: () -> Unit,
+    snackbarHoststate: SnackbarHostState,
+    onLogin: (username: String, password: String) -> Unit
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         val centerModifier = Modifier
@@ -73,25 +134,6 @@ internal fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 用于显示某些信息
-        val snackbarHostState = remember {
-            SnackbarHostState()
-        }
-        // 当 uiState 发生改变时，需要重新启动协程，进行判断
-        LaunchedEffect(key1 = uiState) {
-            if (uiState is LoginUiState.Failed) {
-                val result = snackbarHostState.showSnackbar(uiState.tips ?: "登录失败", duration = SnackbarDuration.Long, actionLabel = "clear")
-                when (result) {
-                    SnackbarResult.ActionPerformed -> {
-
-                    }
-                    else -> {
-
-                    }
-                }
-            }
-        }
-
         // 用户名输入
         var username by remember {
             mutableStateOf("")
@@ -103,12 +145,12 @@ internal fun LoginScreen(
             username = username,
             isError = usernameErrorTips?.hasError ?: false,
             errorTips = usernameErrorTips?.tips ?: "",
-            modifier = Modifier
-                .then(centerModifier)
-        ) {
-            username = it
-            usernameErrorTips = validateUsername(username)
-        }
+            modifier = centerModifier,
+            onValueChange = {
+                username = it
+                usernameErrorTips = validateUsername(username)
+            }
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -121,12 +163,12 @@ internal fun LoginScreen(
         }
         PasswordTextField(
             password = password,
-            modifier = Modifier
-                .then(centerModifier)
-        ) {
-            password = it
-            passwordErrorTips = validatePassword(password)
-        }
+            modifier = centerModifier,
+            onValueChange = {
+                password = it
+                passwordErrorTips = validatePassword(password)
+            }
+        )
         Row(
             modifier = Modifier
                 .padding(vertical = 16.dp)
@@ -138,18 +180,24 @@ internal fun LoginScreen(
             )
         }
 
-        val snackBarHostState = remember {
-            SnackbarHostState()
+        var loginState by remember {
+            mutableStateOf(false)
         }
-//        LaunchedEffect(key1 = ) {
-//            
-//        }
-        Button(
-            enabled = usernameErrorTips == null && passwordErrorTips == null,
-            onClick = {
-                // TODO: 验证
+        LaunchedEffect(key1 = loginState) {
+            if (usernameErrorTips != null) {
+                snackbarHoststate.showSnackbar(usernameErrorTips!!.tips)
+            } else if (passwordErrorTips != null) {
+                snackbarHoststate.showSnackbar(passwordErrorTips!!.tips)
+            }
+        }
 
-                onLogin.invoke(username, password)
+        Button(
+            onClick = {
+                if (usernameErrorTips != null || passwordErrorTips != null) {
+                    loginState = !loginState
+                } else {
+                    onLogin.invoke(username, password)
+                }
             },
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
@@ -180,14 +228,14 @@ private fun validateUsername(username: String): ErrorTips? {
     return null
 }
 
-private fun validatePassword(password: String): ErrorTips {
+private fun validatePassword(password: String): ErrorTips? {
     if (password.isEmpty()) {
         return ErrorTips(true, "密码不能为空!")
     }
     if (password.length >= 30) {
         return ErrorTips(true, "密码过长!")
     }
-    return ErrorTips(false, "")
+    return null
 }
 
 

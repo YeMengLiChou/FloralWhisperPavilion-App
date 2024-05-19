@@ -4,8 +4,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.li.data.repository.UserRepository
+import cn.li.datastore.FwpPreferencesDataStore
 import cn.li.feature.login.state.LoginUiState
+import cn.li.model.constant.AppRole
+import cn.li.network.dto.onError
+import cn.li.network.dto.onSuccess
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -18,18 +23,33 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
     private val savedStatedHandle: SavedStateHandle,
     private val userRepository: UserRepository,
-
-    ) : ViewModel() {
+    private val userDataStore: FwpPreferencesDataStore
+) : ViewModel() {
 
     private val _loginScreenUiState = MutableStateFlow<LoginUiState>(LoginUiState.Nothing)
-    val loginUiState get() =  _loginScreenUiState.asStateFlow()
+    val loginUiState get() = _loginScreenUiState.asStateFlow()
 
+    private var loginJob: Job? = null
+
+    /**
+     * 登录
+     * */
     fun login(username: String, password: String) {
         _loginScreenUiState.value = LoginUiState.Loading
-        viewModelScope.launch {
+        loginJob?.cancel()
+        loginJob = viewModelScope.launch {
             val result = userRepository.userLogin(username, password)
-            result.onSuccess {
+            result.onSuccess { data ->
                 _loginScreenUiState.value = LoginUiState.Success
+                data?.let {
+                    viewModelScope.launch {
+                        userDataStore.updateUserData(
+                            userId = it.id.toString(),
+                            token = it.token,
+                            identification = AppRole.USER
+                        )
+                    }
+                }
             }?.onError {
                 _loginScreenUiState.value = LoginUiState.Failed(tips = it)
             }

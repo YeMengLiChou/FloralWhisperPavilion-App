@@ -19,11 +19,19 @@ class FwpPreferencesDataStore @Inject constructor(
     /**
      * 更新用户数据，token 和 id
      * */
-    suspend fun updateUserData(userId: String, token: String, lastLoginTime: Long) {
+    suspend fun updateUserData(
+        userId: String,
+        token: String,
+        identification: Int,
+        lastLoginTime: Long = System.currentTimeMillis()
+    ) {
         try {
             userPreferences.updateData {
                 it.copy {
-//                    this.userId = userId
+                    this.userId = userId
+                    this.token = token
+                    this.identification = identification
+                    this.loginTimestamp = lastLoginTime
                 }
             }
         } catch (e: IOException) {

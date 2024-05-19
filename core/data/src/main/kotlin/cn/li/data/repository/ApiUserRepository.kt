@@ -27,7 +27,9 @@ internal class ApiUserRepository @Inject constructor(
         dataStore.updateUserData(
             userId = userDataPreferences.userId,
             token = userDataPreferences.token,
-            lastLoginTime = userDataPreferences.lastLoginTimestamp
+            identification = userDataPreferences.role,
+            lastLoginTime = userDataPreferences.lastLoginTimestamp,
+
         )
     }
 

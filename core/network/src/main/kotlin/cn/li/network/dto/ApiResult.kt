@@ -12,28 +12,31 @@ data class ApiResult<out T>(
     val msg: String,
     val data: T?
 ) {
-    fun onSuccess(
-        vararg codes: Int = intArrayOf(200),
-        dataNullable: Boolean = false,
-        action: (T?) -> Unit
-    ): ApiResult<T>? {
-        for (code in codes) {
-            if (this.code == code) {
-                if (dataNullable) {
-                    action.invoke(data)
-                    return null
-                }
-                if (!dataNullable && data != null) {
-                    action.invoke(data)
-                    return null
-                }
-            }
-        }
-        return this
-    }
 
-    fun onError(action: (msg: String) -> Unit) {
-        action(this.msg)
-    }
 }
 
+
+
+fun <T> ApiResult<T>.onSuccess(
+    vararg codes: Int = intArrayOf(200),
+    dataNullable: Boolean = false,
+    action: (T?) -> Unit
+): ApiResult<T>? {
+    for (code in codes) {
+        if (this.code == code) {
+            if (dataNullable) {
+                action.invoke(data)
+                return null
+            }
+            if (!dataNullable && data != null) {
+                action.invoke(data)
+                return null
+            }
+        }
+    }
+    return this
+}
+
+fun <T> ApiResult<T>.onError(action: (msg: String) -> Unit) {
+    action(this.msg)
+}

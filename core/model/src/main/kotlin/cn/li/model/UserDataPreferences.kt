@@ -9,5 +9,6 @@ package cn.li.model
 data class UserDataPreferences(
     val userId: String,
     val token: String,
+    val role: Int,
     val lastLoginTimestamp: Long = System.currentTimeMillis()
 )

@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cn.li.feature.home.navigation.HOME_ROUTE
+import cn.li.feature.login.navigation.LOGIN_ROUTE
 import cn.li.floralwhisperpavilion.navigation.FwpNavigationHost
 
 
@@ -99,7 +100,7 @@ internal fun FwpApp(
             Box(Modifier.fillMaxSize()) {
                 FwpNavigationHost(
                     navController = appState.navController,
-                    startDestination = HOME_ROUTE,
+                    startDestination = LOGIN_ROUTE,
                 )
             }
         }

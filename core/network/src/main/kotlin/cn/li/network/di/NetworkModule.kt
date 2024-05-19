@@ -1,6 +1,6 @@
 package cn.li.network.di
 
-import cn.li.network.network.BuildConfig
+import cn.li.core.network.BuildConfig
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -31,7 +31,9 @@ internal object NetworkModule {
 
     @Singleton
     @Provides
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor
+    ): OkHttpClient {
         return OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
@@ -44,6 +46,7 @@ internal object NetworkModule {
                         }
                     }
             )
+            .addInterceptor(authInterceptor)
             .build()
     }
 

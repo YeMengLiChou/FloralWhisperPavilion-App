@@ -8,5 +8,5 @@ android {
 }
 
 dependencies {
-
+    api(libs.kotlinx.coroutines.guava)
 }

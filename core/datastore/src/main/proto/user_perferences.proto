@@ -2,9 +2,14 @@ syntax = "proto3";
 option java_package = "cn.li.datastore";
 option java_multiple_files = true;
 
+// 用户数据实体
 message UserPreferences {
   // 用户id
-  int64 user_id = 1;
+  string user_id = 1;
   // token
   string token = 2;
+  // 登录时间
+  int64 login_timestamp = 3;
+  // 身份
+  int32 identification = 4;
 }

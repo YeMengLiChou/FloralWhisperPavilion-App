@@ -9,6 +9,10 @@ android {
 
 dependencies {
     api(project(":core:common"))
+    api(project(":core:datastore"))
+    api(project(":core:database"))
+    api(project(":core:network"))
+    api(project(":core:model"))
 
     implementation(libs.kotlinx.coroutines.guava)
 

@@ -21,6 +21,7 @@ secrets {
 
 dependencies {
     api(project(":core:common"))
+    api(project(":core:datastore"))
     implementation(libs.okhttp.logging)
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.jackson)

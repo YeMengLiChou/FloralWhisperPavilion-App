@@ -3,7 +3,6 @@ package cn.li.datastore.di
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
-import androidx.datastore.dataStore
 import androidx.datastore.dataStoreFile
 import cn.li.common.network.Dispatcher
 import cn.li.common.network.FwpDispatcher

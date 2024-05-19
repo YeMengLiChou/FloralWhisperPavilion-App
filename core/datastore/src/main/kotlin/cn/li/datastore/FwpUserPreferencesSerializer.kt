@@ -10,7 +10,7 @@ import javax.inject.Inject
 /**
  * [UserPreferences] 的序列化实现类
  * */
-class FwpUserPreferencesSerializer @Inject constructor(): Serializer<UserPreferences> {
+class FwpUserPreferencesSerializer @Inject constructor() : Serializer<UserPreferences> {
     override val defaultValue: UserPreferences = UserPreferences.getDefaultInstance()
     override suspend fun readFrom(input: InputStream): UserPreferences {
         try {

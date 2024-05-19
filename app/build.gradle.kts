@@ -36,10 +36,19 @@ android {
 
 dependencies {
     // 依赖 features
-    // ...
+    implementation(project(":feature:login"))
+    implementation(project(":feature:home"))
+    implementation(project(":feature:menu"))
+    implementation(project(":feature:user-order"))
+    implementation(project(":feature:employee-order"))
+    implementation(project(":feature:mine"))
+    implementation(project(":feature:shop"))
 
     // 依赖 core
     implementation(project(":core:network"))
+    implementation(project(":core:data"))
+    implementation(project(":core:ui"))
+    implementation(project(":core:model"))
 
     // 外部依赖库
     implementation(libs.androidx.activity.compose)
@@ -61,8 +70,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
 
-
-
+    // 测试依赖
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

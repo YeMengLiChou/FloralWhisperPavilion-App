@@ -16,11 +16,12 @@ fun NavController.navigateToHome(navOptions: NavOptions) = navigate(HOME_ROUTE, 
  * 声明主页的路由
  * */
 fun NavGraphBuilder.homeScreen(
+    onLoginNavigation: () -> Unit,
 ) {
     composable(
         route = HOME_ROUTE,
     ) {
-        HomeRoute()
+        HomeRoute(onLoginNavigation)
     }
 }
 

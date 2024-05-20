@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Lock
@@ -25,7 +27,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,10 +48,12 @@ import cn.li.core.ui.base.CircleIcon
 @Composable
 fun PasswordTextField(
     password: String,
+    onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     isError: Boolean = false,
     errorTips: String = "",
-    onValueChange: (String) -> Unit
+    placeHolderText: String? = null,
+    labelText: String? = null
 ) {
     var lastValue by remember(password) {
         mutableStateOf(password)
@@ -55,10 +63,11 @@ fun PasswordTextField(
     }
     Column(modifier = modifier) {
         Text(
-            text = "密码", modifier = Modifier
+            text = labelText ?: "密码",
+            modifier = Modifier
                 .padding(vertical = 8.dp)
         )
-
+        val focusManager = LocalFocusManager.current
         OutlinedTextField(
             value = lastValue,
             onValueChange = onValueChange,
@@ -107,7 +116,7 @@ fun PasswordTextField(
                 Text(text = if (isError) errorTips else "")
             },
             placeholder = {
-                Text("您的密码", color = LightGrayTextColor)
+                Text(placeHolderText ?: "请输入您的密码", color = LightGrayTextColor)
             },
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors().copy(
@@ -119,6 +128,13 @@ fun PasswordTextField(
                 unfocusedContainerColor = LightGrayTextFieldContainerColor,
             ),
             singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next,
+                keyboardType = KeyboardType.Password
+            ),
+            keyboardActions = KeyboardActions(onNext = {
+                focusManager.moveFocus(FocusDirection.Down)
+            }),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(80.dp)
@@ -132,7 +148,9 @@ fun PasswordTextFieldPreview() {
     var password by remember {
         mutableStateOf("123")
     }
-    PasswordTextField(password = password, isError = true, errorTips = "密码长度长！") {
-        password = it
-    }
+    PasswordTextField(
+        password = password,
+        isError = true,
+        errorTips = "密码长度长！",
+        onValueChange = {})
 }

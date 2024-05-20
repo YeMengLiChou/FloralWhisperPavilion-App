@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.li.android.library)
+    alias(libs.plugins.li.android.library.compose)
 }
 
 android {
@@ -7,5 +8,5 @@ android {
 }
 
 dependencies {
-
+    implementation(libs.androidx.navigation.compose)
 }

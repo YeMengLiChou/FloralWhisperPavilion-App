@@ -116,13 +116,16 @@ class AppState(
      * */
     fun navigateToTopLevelDestination(topLevelDestination: TopLevelDestination) {
         val topLevelNavOptions = navOptions {
+            // 回到开始的地方，避免大量实例累积
             popUpTo(navController.graph.findStartDestination().id) {
                 saveState = true
             }
+            // 保证目标只有一个实例
             launchSingleTop = true
+            // 恢复状态
             restoreState = true
         }
-        Log.d("AppState", "navigateToTopLevelDestination: ${topLevelDestination}")
+        Log.d("AppState", "navigateToTopLevelDestination: $topLevelDestination")
         when (topLevelDestination) {
             TopLevelDestination.HOME -> navController.navigateToHome(topLevelNavOptions)
             TopLevelDestination.MENU -> navController.navigateToMenu(topLevelNavOptions)

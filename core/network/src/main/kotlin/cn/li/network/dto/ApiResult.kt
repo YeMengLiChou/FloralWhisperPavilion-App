@@ -6,7 +6,6 @@ import kotlin.contracts.contract
 /**
  * 自定义 api 结果类
  * */
-@OptIn(ExperimentalContracts::class)
 data class ApiResult<out T>(
     val code: Int,
     val msg: String,
@@ -15,11 +14,9 @@ data class ApiResult<out T>(
 
 }
 
-
-
 fun <T> ApiResult<T>.onSuccess(
     vararg codes: Int = intArrayOf(200),
-    dataNullable: Boolean = false,
+    dataNullable: Boolean = true,
     action: (T?) -> Unit
 ): ApiResult<T>? {
     for (code in codes) {

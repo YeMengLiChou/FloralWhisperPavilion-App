@@ -2,6 +2,7 @@ package cn.li.data.repository
 
 import cn.li.model.UserDataPreferences
 import cn.li.network.dto.ApiResult
+import cn.li.network.dto.employee.EmployeeLoginResult
 import cn.li.network.dto.user.UserLoginAndRegisterDTO
 import cn.li.network.dto.user.UserLoginResult
 import kotlinx.coroutines.flow.Flow
@@ -26,4 +27,9 @@ interface UserRepository {
      * 存储用户数据
      * */
     suspend fun setUserData(userDataPreferences: UserDataPreferences)
+
+    /**
+     * 员工能录
+     * */
+    suspend fun employeeLogin(username: String, password: String): ApiResult<EmployeeLoginResult>
 }

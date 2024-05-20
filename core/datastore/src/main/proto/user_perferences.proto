@@ -12,4 +12,6 @@ message UserPreferences {
   int64 login_timestamp = 3;
   // 身份
   int32 identification = 4;
+  // 商店id
+  string shop_id = 5;
 }

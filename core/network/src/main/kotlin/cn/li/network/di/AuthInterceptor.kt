@@ -18,9 +18,15 @@ class AuthInterceptor @Inject constructor(
         val token = runBlocking {
             dataStore.userData.first().token
         }
-        val request = chain.request().newBuilder().apply {
-            addHeader("authorization", token)
-        }.build()
+        // token 存在时才加请求头
+        val request = if (token.isNotBlank()) {
+            chain.request()
+                .newBuilder().apply {
+                    addHeader("authorization", token)
+                }.build()
+        } else {
+            chain.request()
+        }
         return chain.proceed(request)
     }
 }

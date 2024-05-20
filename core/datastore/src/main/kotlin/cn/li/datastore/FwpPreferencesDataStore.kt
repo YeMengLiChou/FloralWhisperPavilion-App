@@ -23,6 +23,7 @@ class FwpPreferencesDataStore @Inject constructor(
         userId: String,
         token: String,
         identification: Int,
+        shopId: String = "",
         lastLoginTime: Long = System.currentTimeMillis()
     ) {
         try {
@@ -31,6 +32,7 @@ class FwpPreferencesDataStore @Inject constructor(
                     this.userId = userId
                     this.token = token
                     this.identification = identification
+                    this.shopId = shopId
                     this.loginTimestamp = lastLoginTime
                 }
             }

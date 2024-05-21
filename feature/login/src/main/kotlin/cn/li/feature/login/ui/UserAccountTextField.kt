@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cn.li.core.ui.base.CircleIcon
+import cn.li.core.ui.base.ClearableTextFiled
 
 /**
  * 用户账号输入框
@@ -55,23 +56,13 @@ fun UserAccountTextField(
             modifier = Modifier
                 .padding(vertical = 8.dp)
         )
-        OutlinedTextField(
+        ClearableTextFiled(
             value = username,
             onValueChange = onValueChange,
             leadingIcon = {
                 Icon(
                     Icons.Rounded.AccountCircle, contentDescription = ""
                 )
-            },
-            trailingIcon = {
-                if (username.isNotEmpty()) {
-                    CircleIcon(
-                        Icons.Rounded.Clear,
-                        contentDescription = "",
-                        modifier = Modifier.clickable {
-                            lastValue = ""
-                        })
-                }
             },
             placeholder = {
                 Text("您的账号/手机号", color = LightGrayTextColor)
@@ -96,7 +87,7 @@ fun UserAccountTextField(
             shape = RoundedCornerShape(8.dp),
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Next,
-                keyboardType = KeyboardType.Text
+                keyboardType = KeyboardType.Ascii
             ),
             keyboardActions = KeyboardActions(onNext = {
                 focusManager.moveFocus(FocusDirection.Down)

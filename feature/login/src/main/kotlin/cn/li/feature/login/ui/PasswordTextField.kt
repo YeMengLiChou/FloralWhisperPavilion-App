@@ -17,6 +17,7 @@ import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cn.li.core.ui.base.CircleIcon
+import cn.li.core.ui.base.ClearableTextFiled
 
 /**
  * 密码输入框
@@ -68,48 +70,31 @@ fun PasswordTextField(
                 .padding(vertical = 8.dp)
         )
         val focusManager = LocalFocusManager.current
-        OutlinedTextField(
+        ClearableTextFiled(
             value = lastValue,
             onValueChange = onValueChange,
             leadingIcon = {
                 Icon(Icons.Rounded.Lock, contentDescription = "")
             },
             trailingIcon = {
-                // 两个图标，一个清空，一个显示密码
-                Row(modifier = Modifier.padding(end = 12.dp)) {
-                    // 输入密码才显示清空
-                    CircleIcon(
-                        Icons.Rounded.Clear,
-                        contentDescription = "",
-                        modifier = Modifier.clickable(enabled = lastValue.isNotEmpty()) {
-                            lastValue = ""
-                        },
-                        tint = if (lastValue.isNotEmpty()) LocalContentColor.current else Color.Transparent
-                    )
-
-                    Spacer(modifier = Modifier.width(4.dp))
-                    val clickModifier = Modifier.clickable {
-                        passwordVisible = !passwordVisible
-                    }
-
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     // 修改密码的显示状态
                     if (!passwordVisible) {
-                        CircleIcon(
+                        Icon(
                             Icons.Rounded.VisibilityOff,
                             contentDescription = null,
-                            modifier = clickModifier
                         )
                     } else {
-                        CircleIcon(
+                        Icon(
                             Icons.Rounded.Visibility,
                             contentDescription = null,
-                            modifier = clickModifier
                         )
                     }
                 }
             },
             // 设置密码可见性
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            visualTransformation = if (passwordVisible) VisualTransformation.None
+            else PasswordVisualTransformation('*'),
 
             isError = isError,
             supportingText = {

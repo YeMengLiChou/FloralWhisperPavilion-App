@@ -14,3 +14,5 @@ internal val LightGrayTextFieldContainerColor = Color(0xFFFAFAFA)
 
 
 internal val Red50 = Color(0xffffebee)
+
+internal val LightGreenColor = Color(0xff80c5be)

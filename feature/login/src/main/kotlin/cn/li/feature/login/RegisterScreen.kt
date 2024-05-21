@@ -1,23 +1,14 @@
 package cn.li.feature.login
 
 import android.util.Log
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.rememberScrollableState
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imeAnimationSource
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -32,16 +23,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import cn.li.feature.login.state.ErrorTips
 import cn.li.feature.login.state.RegisterUiState
 import cn.li.feature.login.state.validatePassword
 import cn.li.feature.login.state.validateSecondPassword
@@ -70,11 +59,11 @@ internal fun RegisterScreen(
         SnackbarHostState()
     }
 
-    var username by remember {
+    var username by rememberSaveable {
         mutableStateOf(initialUsername)
     }
 
-    var password by remember {
+    var password by rememberSaveable {
         mutableStateOf("")
     }
 
@@ -93,7 +82,8 @@ internal fun RegisterScreen(
                 snackbarHostState.showSnackbar(
                     message = "注册成功",
                     duration = SnackbarDuration.Short,
-                    actionLabel = "前往登录"
+                    actionLabel = "前往登录",
+                    withDismissAction = true,
                 ).let {
                     // 点击 “前往登录” 后跳转到登录界面
                     if (it == SnackbarResult.ActionPerformed) {
@@ -135,7 +125,6 @@ internal fun RegisterScreen(
 
             RegisterForm(
                 uiState = uiState,
-                snackbarHostState = snackbarHostState,
                 onRegister = onRegister,
                 username = username,
                 password = password,
@@ -155,11 +144,9 @@ internal fun RegisterScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RegisterForm(
     uiState: RegisterUiState,
-    snackbarHostState: SnackbarHostState,
     onRegister: (username: String, password: String) -> Unit,
     username: String,
     password: String,
@@ -168,11 +155,11 @@ private fun RegisterForm(
 ) {
 
     var usernameErrorTips by remember {
-        mutableStateOf<ErrorTips?>(null)
+        mutableStateOf<String?>(null)
     }
 
     var passwordErrorTips by remember {
-        mutableStateOf<ErrorTips?>(null)
+        mutableStateOf<String?>(null)
     }
 
     // 重复密码
@@ -181,12 +168,7 @@ private fun RegisterForm(
     }
 
     var secondPasswordErrorTips by remember {
-        mutableStateOf<ErrorTips?>(null)
-    }
-
-    // 点击注册按钮进行改变
-    var registerState by remember {
-        mutableStateOf(false)
+        mutableStateOf<String?>(null)
     }
 
 
@@ -207,20 +189,19 @@ private fun RegisterForm(
             text = "注册您的账号",
             fontSize = 16.sp,
             color = LightGrayTextColor,
-            modifier = Modifier
-                .then(centerModifier)
+            modifier = centerModifier
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         UserAccountTextField(
             username = username,
-            isError = usernameErrorTips?.hasError ?: false,
-            errorTips = usernameErrorTips?.tips ?: "",
+            isError = usernameErrorTips != null,
+            errorTips = usernameErrorTips ?: "",
             modifier = centerModifier,
             onValueChange = {
                 onValueChange(it, password)
-                usernameErrorTips = validateUsername(username)
+                usernameErrorTips = validateUsername(it)
             }
         )
 
@@ -229,9 +210,11 @@ private fun RegisterForm(
         PasswordTextField(
             password = password,
             modifier = centerModifier,
+            isError = passwordErrorTips != null,
+            errorTips = passwordErrorTips ?: "",
             onValueChange = {
                 onValueChange(username, it)
-                passwordErrorTips = validatePassword(password)
+                passwordErrorTips = validatePassword(it)
             }
         )
 
@@ -240,43 +223,30 @@ private fun RegisterForm(
         PasswordTextField(
             password = secondPassword,
             modifier = centerModifier,
+            isError = secondPasswordErrorTips != null,
+            errorTips = secondPasswordErrorTips ?: "",
             onValueChange = {
                 secondPassword = it
-                secondPasswordErrorTips = validateSecondPassword(password, secondPassword)
+                secondPasswordErrorTips = validateSecondPassword(password, it)
             },
             labelText = "重复密码",
             placeHolderText = "请重复输入您的密码"
         )
 
-        // 检查参数
-        LaunchedEffect(key1 = registerState) {
-            if (usernameErrorTips != null) {
-                snackbarHostState.showSnackbar(usernameErrorTips!!.tips)
-            } else if (passwordErrorTips != null) {
-                snackbarHostState.showSnackbar(passwordErrorTips!!.tips)
-            } else if (secondPasswordErrorTips != null) {
-                snackbarHostState.showSnackbar(secondPasswordErrorTips!!.tips)
-            }
-        }
 
-        // TODO: 考虑加入 enable
         val buttonEnable =
-            (usernameErrorTips != null || passwordErrorTips != null || secondPasswordErrorTips != null)
-                    && (uiState == RegisterUiState.Nothing || uiState is RegisterUiState.Failed)
+            (usernameErrorTips == null && passwordErrorTips == null && secondPasswordErrorTips == null)
+                    && (uiState != RegisterUiState.Loading)
         // 注册按钮，点击时检测是否存在错误
         Button(
             enabled = buttonEnable,
             onClick = {
-                if (usernameErrorTips != null || passwordErrorTips != null || secondPasswordErrorTips != null) {
-                    registerState = !registerState
-                    return@Button
-                }
                 onRegister.invoke(username, password)
             },
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier
-                .height(48.dp)
-                .then(centerModifier),
+            modifier = centerModifier
+                .padding(top = 32.dp)
+                .height(48.dp),
             colors = ButtonDefaults.buttonColors().copy(
                 containerColor = Color(0xff80c5be)
             )

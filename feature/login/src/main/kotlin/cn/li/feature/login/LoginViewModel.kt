@@ -84,6 +84,11 @@ class LoginViewModel @Inject constructor(
     }
 
 
+
+
+    // ============================= Register ===============================================
+
+
     private val _registerScreenUiState = MutableStateFlow<RegisterUiState>(RegisterUiState.Nothing)
     val registerUiState = _registerScreenUiState.asStateFlow()
     private var registerJob: Job? = null

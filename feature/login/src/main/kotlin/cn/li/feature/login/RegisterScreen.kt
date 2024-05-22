@@ -35,7 +35,7 @@ import cn.li.feature.login.state.RegisterUiState
 import cn.li.feature.login.state.validatePassword
 import cn.li.feature.login.state.validateSecondPassword
 import cn.li.feature.login.state.validateUsername
-import cn.li.feature.login.ui.LightGrayTextColor
+import cn.li.core.ui.theme.LightGrayTextColor
 import cn.li.feature.login.ui.PasswordTextField
 import cn.li.feature.login.ui.TopToolBar
 import cn.li.feature.login.ui.UserAccountTextField

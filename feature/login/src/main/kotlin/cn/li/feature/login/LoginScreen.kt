@@ -39,8 +39,8 @@ import cn.li.core.ui.base.CheckboxText
 import cn.li.feature.login.state.LoginUiState
 import cn.li.feature.login.state.validatePassword
 import cn.li.feature.login.state.validateUsername
-import cn.li.feature.login.ui.LightGrayTextColor
-import cn.li.feature.login.ui.LightGreenColor
+import cn.li.core.ui.theme.LightGrayTextColor
+import cn.li.core.ui.theme.LightGreenColor
 import cn.li.feature.login.ui.PasswordTextField
 import cn.li.feature.login.ui.TopToolBar
 import cn.li.feature.login.ui.UserAccountTextField

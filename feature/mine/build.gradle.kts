@@ -9,6 +9,4 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:data"))
-
 }

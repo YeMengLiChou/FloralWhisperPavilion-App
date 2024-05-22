@@ -52,7 +52,7 @@ dependencies {
 
     // 外部依赖库
     implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.adaptive)
     implementation(libs.androidx.compose.material3.adaptive.layout)
     implementation(libs.androidx.compose.material3.adaptive.navigation)

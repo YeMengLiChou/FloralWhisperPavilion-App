@@ -5,7 +5,7 @@ option java_multiple_files = true;
 // 用户数据实体
 message UserPreferences {
   // 用户id
-  string user_id = 1;
+  int64 user_id = 1;
   // token
   string token = 2;
   // 登录时间
@@ -13,5 +13,17 @@ message UserPreferences {
   // 身份
   int32 identification = 4;
   // 商店id
-  string shop_id = 5;
+  int64 shop_id = 5;
+  // 用户名
+  string username = 6;
+  // 头像
+  string avatar = 7;
+  // 创建时间
+  int64 create_time = 8;
+  // 更新时间
+  int64 update_time = 9;
+  // 手机号
+  string phone = 10;
+  // 性别
+  int32 sex = 11;
 }

@@ -1,11 +1,9 @@
 package cn.li.data.repository
 
-import cn.li.model.UserDataPreferences
+import cn.li.datastore.UserPreferences
 import cn.li.network.dto.ApiResult
 import cn.li.network.dto.employee.EmployeeLoginResult
-import cn.li.network.dto.user.UserLoginAndRegisterDTO
 import cn.li.network.dto.user.UserLoginResult
-import kotlinx.coroutines.flow.Flow
 
 /**
  * 用户相关的数据源
@@ -26,7 +24,7 @@ interface UserRepository {
     /**
      * 存储用户数据
      * */
-    suspend fun setUserData(userDataPreferences: UserDataPreferences)
+    suspend fun setUserData(userPreferences: UserPreferences)
 
     /**
      * 员工能录

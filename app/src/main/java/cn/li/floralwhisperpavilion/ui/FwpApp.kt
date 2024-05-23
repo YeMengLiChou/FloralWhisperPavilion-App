@@ -55,10 +55,6 @@ internal fun FwpAppWrapper(appState: AppState, modifier: Modifier = Modifier) {
             )
         }
     }
-//    val imeAnimationSource = WindowInsets.imeAnimationSource
-    val scrollState = rememberScrollState(
-        0
-    )
 
     Surface(
         contentColor = Color.White,
@@ -83,7 +79,7 @@ internal fun FwpApp(
     modifier: Modifier = Modifier
 ) {
     Scaffold(
-        modifier = modifier.systemBarsPadding(),
+        modifier = modifier,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         contentColor = MaterialTheme.colorScheme.onBackground,
         containerColor = Color.Transparent,

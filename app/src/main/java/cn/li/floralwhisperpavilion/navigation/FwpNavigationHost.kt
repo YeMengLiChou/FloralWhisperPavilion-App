@@ -17,7 +17,7 @@ import cn.li.feature.login.navigation.RegisterNavigationRoute
 import cn.li.feature.login.navigation.RegisterNavigationRoute.navigateToRegister
 import cn.li.feature.login.navigation.RegisterNavigationRoute.registerScreen
 import cn.li.feature.menu.navigation.menuScreen
-import cn.li.feature.mine.navigation.mineScreen
+import cn.li.feature.mine.navigation.MineNavigationRoute.mineScreen
 import cn.li.feature.shop.navigation.shopScreen
 import cn.li.feature.userorder.navigation.userOrderScreen
 

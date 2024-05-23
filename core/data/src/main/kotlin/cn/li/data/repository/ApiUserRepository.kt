@@ -1,7 +1,7 @@
 package cn.li.data.repository
 
 import cn.li.datastore.FwpPreferencesDataStore
-import cn.li.model.UserDataPreferences
+import cn.li.datastore.UserPreferences
 import cn.li.network.api.employee.EmployeeDataSource
 import cn.li.network.api.user.UserDataSource
 import cn.li.network.dto.ApiResult
@@ -39,7 +39,10 @@ internal class ApiUserRepository @Inject constructor(
     /**
      * 员工登录
      * */
-    override suspend fun employeeLogin(username: String, password: String): ApiResult<EmployeeLoginResult> {
+    override suspend fun employeeLogin(
+        username: String,
+        password: String
+    ): ApiResult<EmployeeLoginResult> {
         return employeeDataSource.employeeLogin(EmployeeLoginRegisterDTO(username, password))
     }
 
@@ -47,16 +50,9 @@ internal class ApiUserRepository @Inject constructor(
     /**
      * 更新用户数据缓存
      * */
-    override suspend fun setUserData(userDataPreferences: UserDataPreferences) {
-        dataStore.updateUserData(
-            userId = userDataPreferences.userId,
-            token = userDataPreferences.token,
-            identification = userDataPreferences.role,
-            lastLoginTime = userDataPreferences.lastLoginTimestamp,
-
-        )
+    override suspend fun setUserData(userPreferences: UserPreferences) {
+        dataStore.updateUserData { userPreferences }
     }
-
 
 
 }

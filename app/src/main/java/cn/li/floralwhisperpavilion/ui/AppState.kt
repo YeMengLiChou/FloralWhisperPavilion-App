@@ -19,7 +19,7 @@ import cn.li.data.util.NetworkMonitor
 import cn.li.feature.employee.order.navigation.navigateToEmployeeOrder
 import cn.li.feature.home.navigation.navigateToHome
 import cn.li.feature.menu.navigation.navigateToMenu
-import cn.li.feature.mine.navigation.navigateToMine
+import cn.li.feature.mine.navigation.MineNavigationRoute.navigateToMine
 import cn.li.feature.shop.navigation.navigateToShop
 import cn.li.feature.userorder.navigation.navigateToUserOrder
 import cn.li.floralwhisperpavilion.navigation.TopLevelDestination

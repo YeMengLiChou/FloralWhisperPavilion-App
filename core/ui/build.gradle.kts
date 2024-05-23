@@ -16,5 +16,6 @@ dependencies {
     api(libs.androidx.compose.material3)
     api(libs.androidx.compose.runtime)
     api(libs.androidx.compose.ui.util)
-
+    api(libs.coil.kt.compose)
+    api(libs.androidx.contraintLayout.compose)
 }

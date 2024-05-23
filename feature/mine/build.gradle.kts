@@ -9,4 +9,6 @@ android {
 }
 
 dependencies {
+    implementation(libs.coil.kt.compose)
+    implementation(libs.androidx.contraintLayout.compose)
 }

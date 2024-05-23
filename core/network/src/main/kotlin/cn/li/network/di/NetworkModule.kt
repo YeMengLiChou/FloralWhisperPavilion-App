@@ -1,13 +1,19 @@
 package cn.li.network.di
 
+import android.content.Context
 import cn.li.core.network.BuildConfig
+import coil.ImageLoader
+import coil.decode.SvgDecoder
+import coil.util.DebugLogger
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -70,6 +76,27 @@ internal object NetworkModule {
                 )
             )
             .client(okHttpClient)
+            .build()
+    }
+
+    /**
+     * 提供 [ImageLoader] 依赖项
+     * */
+    @Provides
+    @Singleton
+    fun imageLoader(
+        client: OkHttpClient,
+        @ApplicationContext application: Context,
+    ): ImageLoader {
+        return ImageLoader.Builder(application)
+            .callFactory { client }
+            .components { add(SvgDecoder.Factory()) }
+            .respectCacheHeaders(false)
+            .apply {
+                if (BuildConfig.DEBUG) {
+                    logger(DebugLogger())
+                }
+            }
             .build()
     }
 }

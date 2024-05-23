@@ -27,4 +27,6 @@ dependencies {
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.jackson)
     implementation(libs.jackson.kotlin.module)
+    api(libs.coil.kt)
+    api(libs.coil.kt.svg)
 }

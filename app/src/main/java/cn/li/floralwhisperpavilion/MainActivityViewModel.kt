@@ -30,10 +30,6 @@ internal class MainActivityViewModel @Inject constructor(
      * */
     val uiState: StateFlow<MainActivityUiState> = userDataStore.userDataStateFlow
         .map {
-            Log.d(
-                TAG,
-                "uiState: ${it}"
-            )
             when (it.identification) {
                 AppRole.USER -> MainActivityUiState.UserLogin
                 AppRole.EMPLOYEE -> MainActivityUiState.EmployeeLogin

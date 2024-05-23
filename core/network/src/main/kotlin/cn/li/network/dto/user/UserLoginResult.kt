@@ -11,23 +11,32 @@ import cn.li.model.ext.toTimestamp
 data class UserLoginResult(
     val id: Long,
     val username: String,
-    val avatar: String,
+    val avatar: String?,
     val createTime: String,
     val updateTime: String,
-    val phone: String,
-    val sex: String,
-)
+    val phone: String?,
+    val sex: String?,
+) {
+    companion object {
+        /**
+         * 未指定的性别
+         * */
+        const val SEX_UNSPECIFIED = -1
+        const val SEX_MALE = 1
+        const val SEX_FEMALE = 0
+    }
+}
 
 
 fun UserPreferences.update(data: UserLoginResult): UserPreferences {
     return copy {
         userId = data.id
         username = data.username
-        avatar = data.avatar
+        avatar = data.avatar ?: ""
         createTime = data.createTime.toTimestamp()
         updateTime = data.updateTime.toTimestamp()
-        phone = data.phone
-        sex = data.sex.toInt()
+        phone = data.phone ?: ""
+        sex = data.sex?.toInt() ?: UserLoginResult.SEX_UNSPECIFIED
         identification = AppRole.USER
         loginTimestamp = System.currentTimeMillis()
         shopId = 0

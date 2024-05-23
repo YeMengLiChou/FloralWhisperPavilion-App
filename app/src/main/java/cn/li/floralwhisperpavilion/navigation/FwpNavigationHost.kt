@@ -66,7 +66,7 @@ fun FwpNavigationHost(
         employeeOrderScreen()
         shopScreen()
 
-        nestedMineNavGraph()
+        nestedMineNavGraph(navController)
 
         loginScreen(
             onBackClick = navController::popBackStack,

@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.navigation
 import cn.li.feature.mine.navigation.MineNavigationRoute.mineScreen
+import cn.li.feature.mine.navigation.UserInfoNavRoute.userInfoScreen
 import cn.li.model.NavigationRoute
 import cn.li.model.constant.DEEP_LINK_PREFIX
 
@@ -21,14 +22,17 @@ object MineNestedNavRoute : NavigationRoute {
     fun NavHostController.navigateToMineGraph(navOptions: NavOptions) =
         navigate(this@MineNestedNavRoute.route, navOptions)
 
-    fun NavGraphBuilder.nestedMineNavGraph() {
+    fun NavGraphBuilder.nestedMineNavGraph(
+        navHostController: NavHostController
+    ) {
         navigation(
             startDestination = MineNavigationRoute.route,
             route = this@MineNestedNavRoute.route,
             arguments = this@MineNestedNavRoute.arguments,
             deepLinks = this@MineNestedNavRoute.deepLinks
         ) {
-            mineScreen()
+            mineScreen(navController = navHostController)
+            userInfoScreen(navController = navHostController)
         }
     }
 }

@@ -1,6 +1,5 @@
 package cn.li.floralwhisperpavilion.ui
 
-import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -8,29 +7,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.navigation.NavController
 import androidx.navigation.NavDestination
+import androidx.navigation.NavGraph
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
+import cn.li.common.ext.cast
 import cn.li.data.util.NetworkMonitor
 import cn.li.feature.employee.order.navigation.navigateToEmployeeOrder
 import cn.li.feature.home.navigation.navigateToHome
 import cn.li.feature.menu.navigation.navigateToMenu
-import cn.li.feature.mine.navigation.MineNavigationRoute.navigateToMine
+import cn.li.feature.mine.navigation.MineNestedNavRoute.navigateToMineGraph
 import cn.li.feature.shop.navigation.navigateToShop
 import cn.li.feature.userorder.navigation.navigateToUserOrder
 import cn.li.floralwhisperpavilion.navigation.TopLevelDestination
-import com.google.common.collect.ImmutableList
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.runBlocking
 
 /**
  * App 状态信息
@@ -93,23 +89,32 @@ class AppState(
      * 底部导航栏/侧边栏中的所有路由
      * */
     private val bottomBarRoutes: Set<String>
-        get() = topLevelDestinations.map(TopLevelDestination::route).toSet().apply {
-            Log.d("AppState", "bottomBarRoutes: ${this.toString()} ")
-        }
+        get() = HashSet<String>().apply {
+            // 判断是否已经初始化，即调用 `setGraph` 后
+            if (navController.currentDestination == null) return@apply
+            // 加载底部栏的所有路由项
+            topLevelDestinations.forEach {
+                if (it.isNestedGraph) {
+                    // 将嵌套图的startDestination拿出来
+                    val route = navController.graph
+                        .findNode(route = it.route)
+                        .cast<NavGraph>()!!
+                        .findStartDestination()
+                        .route!!
+                    this.add(route)
+                } else {
+                    this.add(it.route)
+                }
+            }
+        }.toSet()
 
     /**
      * 判断是否应该显示
      * */
     val shouldShowBottomBarByNavigation
         @Composable get() = bottomBarRoutes.contains(currentDestination?.route).apply {
-            Log.d("AppState", "currentDestination: ${currentDestination?.route} ")
         }
 
-//    private val currentDestination: StateFlow<NavDestination> get() = navController.currentBackStackEntryFlow.stateIn(
-//        coroutineScope,
-//        started = SharingStarted.WhileSubscribed(5_000),
-//
-//    )
 
     /**
      * 导航到对应的目的地
@@ -130,10 +135,11 @@ class AppState(
             TopLevelDestination.HOME -> navController.navigateToHome(topLevelNavOptions)
             TopLevelDestination.MENU -> navController.navigateToMenu(topLevelNavOptions)
             TopLevelDestination.USER_ORDER -> navController.navigateToUserOrder(topLevelNavOptions)
-            TopLevelDestination.USER_MINE -> navController.navigateToMine(topLevelNavOptions)
+            TopLevelDestination.USER_MINE -> navController.navigateToMineGraph(topLevelNavOptions)
             TopLevelDestination.EMPLOYEE_ORDER -> navController.navigateToEmployeeOrder(
                 topLevelNavOptions
             )
+
             TopLevelDestination.SHOP -> navController.navigateToShop(topLevelNavOptions)
         }
 

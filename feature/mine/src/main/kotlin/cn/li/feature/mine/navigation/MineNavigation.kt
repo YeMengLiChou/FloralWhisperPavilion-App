@@ -12,7 +12,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import cn.li.feature.mine.UserMineUiState
 import cn.li.feature.mine.UserMineViewModel
 import cn.li.feature.mine.ui.MineScreen
 import cn.li.model.NavigationRoute
@@ -20,10 +19,11 @@ import cn.li.model.constant.DEEP_LINK_PREFIX
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+
 /**
  * **我的** 界面 导航路由
  * */
-object MineNavigationRoute : NavigationRoute {
+internal object MineNavigationRoute : NavigationRoute {
     override val routePrefix: String
         get() = "user_mine"
     override val deepLinkPrefix: String
@@ -41,7 +41,11 @@ object MineNavigationRoute : NavigationRoute {
             arguments = this@MineNavigationRoute.arguments,
             deepLinks = this@MineNavigationRoute.deepLinks
         ) {
-            MineRoute()
+            MineRoute(
+                onUserInfoNavigation = {},
+                onAddressManagementNavigation = {},
+                onSettingsNavigation = {}
+            )
         }
     }
 }
@@ -49,13 +53,18 @@ object MineNavigationRoute : NavigationRoute {
 
 @Composable
 fun MineRoute(
+    onUserInfoNavigation: () -> Unit,
+    onAddressManagementNavigation: () -> Unit,
+    onSettingsNavigation: () -> Unit,
     viewModel: UserMineViewModel = hiltViewModel(),
 ) {
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     var refreshing by remember {
         mutableStateOf(false)
     }
     val scope = rememberCoroutineScope()
+
     MineScreen(
         uiState = uiState,
         refreshing = refreshing,
@@ -66,5 +75,8 @@ fun MineRoute(
                 refreshing = false
             }
         },
+        onUserInfoNavigation = onUserInfoNavigation,
+        onAddressManagementNavigation = onAddressManagementNavigation,
+        onSettingsNavigation = onSettingsNavigation
     )
 }

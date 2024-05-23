@@ -1,22 +1,23 @@
 package cn.li.floralwhisperpavilion
 
 import android.app.Application
-import android.util.Log
-import dagger.Binds
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
+import coil.ImageLoader
+import coil.ImageLoaderFactory
 import dagger.hilt.android.HiltAndroidApp
-import dagger.hilt.android.components.ActivityComponent
-import dagger.hilt.components.SingletonComponent
 import javax.inject.Inject
-import javax.inject.Singleton
 
 @HiltAndroidApp
-class FwpApplication: Application() {
+class FwpApplication : Application(), ImageLoaderFactory {
+
+    @Inject
+    lateinit var imageLoader: dagger.Lazy<ImageLoader>
 
     override fun onCreate() {
         super.onCreate()
+    }
+
+    override fun newImageLoader(): ImageLoader {
+        return imageLoader.get()
     }
 }
 

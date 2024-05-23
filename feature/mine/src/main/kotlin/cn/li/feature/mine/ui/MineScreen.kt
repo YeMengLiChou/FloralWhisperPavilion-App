@@ -1,13 +1,12 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
-
 package cn.li.feature.mine.ui
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,15 +17,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronRight
-import androidx.compose.material.icons.rounded.Book
-import androidx.compose.material.icons.sharp.Person
-import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedAssistChip
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,12 +39,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.ConstraintSet
+import androidx.constraintlayout.compose.layoutId
+import cn.li.common.ext.cast
+import cn.li.core.ui.base.GradientBackground
 import cn.li.core.ui.base.SwipeRefreshBox
+import cn.li.core.ui.end
+import cn.li.core.ui.start
+import cn.li.core.ui.theme.GradientColors
 import cn.li.core.ui.theme.LightGreenColor
+import cn.li.core.ui.verticalCenter
+import cn.li.datastore.UserPreferences
 import cn.li.feature.mine.UserMineUiState
+import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -55,7 +70,10 @@ import kotlinx.coroutines.launch
 fun MineScreen(
     uiState: UserMineUiState,
     refreshing: Boolean = false,
-    onPullRefresh: () -> Unit
+    onPullRefresh: () -> Unit,
+    onUserInfoNavigation: () -> Unit,
+    onAddressManagementNavigation: () -> Unit,
+    onSettingsNavigation: () -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -68,8 +86,22 @@ fun MineScreen(
                 color = LightGreenColor
             )
         }
-
-        Box(Modifier.fillMaxSize()) {
+        GradientBackground(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(.5f)
+                .align(Alignment.TopEnd),
+            gradientColors = GradientColors(
+                top = LightGreenColor,
+            )
+        ) {
+            Spacer(modifier = Modifier.fillMaxHeight())
+        }
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 8.dp)
+        ) {
             SwipeRefreshBox(
                 refreshing = refreshing,
                 onRefresh = onPullRefresh,
@@ -81,98 +113,229 @@ fun MineScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxSize()
                 ) {
+                    // 顶部栏
                     TopToolbar(
                         modifier = Modifier.background(Color.Transparent),
-                        onSettingNavigation = {}
+                        onSettingNavigation = onSettingsNavigation
                     )
-                    UserInfo(modifier = Modifier.fillMaxWidth(0.9f))
-                    Spacer(modifier = Modifier.height(16.dp))
+                    // 用户信息栏
+                    val user = uiState
+                        .takeIf { it is UserMineUiState.Success }
+                        ?.cast<UserMineUiState.Success>()
+                        ?.userPreferences
 
-                    FunctionItem(
-                        text = "地址管理",
-                        onClick = {
-                            // TODO：导航去 “地址管理” 界面
-                        },
-                        leadingIcon = {
-                            Icon(imageVector = Icons.Rounded.Book, contentDescription = null)
-                        },
+                    UserInfo(
+                        userPreferences = user,
+                        modifier = Modifier.fillMaxWidth(),
+                        onRightIconClick = onUserInfoNavigation
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    // 选项
+                    Card(
+                        colors = CardDefaults.cardColors().copy(
+                            containerColor = Color.White
+                        ),
                         modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .height(64.dp),
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    FunctionItem(
-                        text = "联系客服",
-                        onClick = {
-
-                        },
-                        leadingIcon = {
-                            Icon(imageVector = Icons.Rounded.Book, contentDescription = null)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .height(64.dp),
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .padding(vertical = 8.dp, horizontal = 8.dp),
+                    ) {
+                        Column(modifier = Modifier.padding(8.dp)) {
+                            ChipItem(
+                                onClick = onAddressManagementNavigation,
+                                leadingIcon = Icons.Outlined.LocationOn,
+                                text = "地址管理",
+                            )
+                            HorizontalDivider(
+                                color = Color(0xfff0f0f0),
+                                modifier = Modifier.padding(horizontal = 4.dp)
+                            )
+                            ChipItem(
+                                onClick = { /*TODO*/ },
+                                leadingIcon = Icons.Outlined.Email,
+                                text = "我的消息"
+                            )
+                        }
+                    }
                 }
-
             }
         }
     }
 }
 
 @Composable
-internal fun UserInfo(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
+internal fun UserInfo(
+    userPreferences: UserPreferences?,
+    onRightIconClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    constraintSet: ConstraintSet = UserInfoDefaults.constraintSet(),
+) {
+    ConstraintLayout(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .padding(vertical = 16.dp, horizontal = 8.dp),
+        constraintSet = constraintSet,
     ) {
-        // TODO: 使用 Coil 加载头像
-        Image(
-            imageVector = Icons.Sharp.Person,
-            contentDescription = null,
-            modifier = Modifier
-                .clip(CircleShape)
-                .size(64.dp),
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Column(
-            modifier = Modifier.fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceEvenly,
+        Box(
+            modifier = Modifier.layoutId("avatarBox")
         ) {
-            Text(text = "Username", fontSize = 20.sp)
-            Text(text = "123******123")
+            val avatarUrl = userPreferences?.avatar?.takeIf { it.isNotBlank() }
+            val imageModifier =
+                Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(color = Color.White)
+            // 没有头像时显示默认
+            if (avatarUrl == null) {
+                Image(
+                    imageVector = Icons.Rounded.Person,
+                    contentDescription = null,
+                    modifier = imageModifier,
+                    contentScale = ContentScale.Fit
+                )
+            } else {
+                // coil 加载图片
+                SubcomposeAsyncImage(
+                    model = avatarUrl,
+                    contentDescription = null,
+                    modifier = imageModifier,
+                    contentScale = ContentScale.Crop,
+                    loading = {
+                        CircularProgressIndicator()
+                    },
+                    error = {
+                        /* TODO：添加加载失败的图像 */
+                    }
+                )
+            }
+        }
+
+        Spacer(
+            modifier = Modifier
+                .width(16.dp)
+                .layoutId("spacer")
+        )
+
+        val username = if (userPreferences == null) {
+            "未登录"
+        } else if (userPreferences.username.isBlank()) {
+            "未设置"
+        } else {
+            userPreferences.username
+        }
+        val phoneNumber = if (userPreferences == null || userPreferences.phone.isBlank()) {
+            null
+        } else {
+            userPreferences.phone
+        }
+        // 用户名 + 电话号码
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .layoutId("column"),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(text = username, fontSize = TextUnit(20f, TextUnitType.Sp))
+            phoneNumber?.let {
+                Text(text = it)
+            }
+        }
+        // 右边的 >
+        Box(
+            modifier = Modifier
+                .layoutId("rightIcon")
+                .clip(CircleShape)
+                .clickable(
+                    onClick = onRightIconClick
+                )
+                .size(48.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.ChevronRight,
+                contentDescription = null,
+                modifier = Modifier.clip(CircleShape)
+            )
+        }
+
+    }
+}
+
+/**
+ * 默认使用样式
+ * */
+private object UserInfoDefaults {
+
+    @Composable
+    fun constraintSet() = ConstraintSet {
+        val (avatarBox, spacerRef, columnRef, buttonRef) = createRefsFor(
+            "avatarBox", "spacer", "column", "rightIcon"
+        )
+
+        constrain(avatarBox) {
+            start()
+            verticalCenter()
+        }
+        constrain(spacerRef) {
+            start.linkTo(avatarBox.end)
+        }
+        constrain(columnRef) {
+            verticalCenter()
+            start.linkTo(spacerRef.end)
+        }
+        constrain(buttonRef) {
+            end()
+            verticalCenter()
         }
     }
 }
 
-@Composable
-internal fun FunctionItem(
-    text: String,
-    onClick: () -> Unit,
-    leadingIcon: @Composable () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    ElevatedAssistChip(
-        onClick = onClick,
-        label = {
-            Text(text = text)
-        },
-        leadingIcon = leadingIcon,
-        trailingIcon = {
-            Icon(
-                imageVector = Icons.Outlined.ChevronRight,
-                contentDescription = null
-            )
-        },
-        modifier = modifier,
-        colors = AssistChipDefaults.elevatedAssistChipColors().copy(
-            containerColor = Color.White,
-        ),
 
+@Composable
+fun ChipItem(
+    onClick: () -> Unit,
+    leadingIcon: ImageVector,
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    val constraintSet = ConstraintSet {
+        val (leftIconRef, textRef, rightIconRef) = createRefsFor(
+            "leftIcon", "text", "rightIcon"
         )
+        constrain(leftIconRef) {
+            start(8.dp)
+            verticalCenter()
+        }
+        constrain(textRef) {
+            start.linkTo(leftIconRef.end, margin = 8.dp)
+            verticalCenter()
+        }
+        constrain(rightIconRef) {
+            verticalCenter()
+            end(4.dp)
+        }
+    }
+
+    ConstraintLayout(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .clickable(onClick = onClick),
+        constraintSet = constraintSet,
+    ) {
+        Icon(
+            imageVector = leadingIcon,
+            contentDescription = null,
+            modifier = Modifier.layoutId("leftIcon")
+        )
+        Text(text = text, modifier = Modifier.layoutId("text"))
+        Icon(
+            imageVector = Icons.Outlined.ChevronRight,
+            contentDescription = null,
+            modifier = Modifier.layoutId("rightIcon")
+        )
+    }
 }
 
 
@@ -193,5 +356,8 @@ private fun MineScreenPreview() {
                 refreshing = false
             }
         },
+        onUserInfoNavigation = {},
+        onAddressManagementNavigation = {},
+        onSettingsNavigation = {}
     )
 }

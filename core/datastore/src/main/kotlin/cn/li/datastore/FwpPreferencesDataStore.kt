@@ -7,26 +7,37 @@ import cn.li.common.network.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * 用户数据来源
  * */
+@Singleton
 class FwpPreferencesDataStore @Inject constructor(
     @ApplicationScope private val scope: CoroutineScope,
     private val userPreferences: DataStore<UserPreferences>
 ) {
+    companion object {
+        const val TAG = "FwpPreferencesDataStore"
+    }
+
     /**
      * 用户数据流，最新数据
      * */
-    val userData
-        get() = userPreferences.data.stateIn(
+    val userDataStateFlow
+        get() = userPreferences.data.map {
+            it
+        }.stateIn(
             scope = scope,
             started = SharingStarted.WhileSubscribed(3_000),
             initialValue = UserPreferences.getDefaultInstance()
         )
+
+    val userDataFlow get() = userPreferences.data
 
     /**
      * 更新用户数据，token 和 id
@@ -80,6 +91,7 @@ class FwpPreferencesDataStore @Inject constructor(
      * 更新 jwt token
      * */
     fun updateJwtToken(token: String) {
+        Log.d(TAG, "updateJwtToken: $token")
         scope.launch(Dispatchers.IO) {
             try {
                 userPreferences.updateData {

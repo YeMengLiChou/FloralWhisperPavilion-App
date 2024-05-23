@@ -28,11 +28,11 @@ internal class MainActivityViewModel @Inject constructor(
      * 说明：
      * 1. [stateIn] 将 Flow 转换为热流，initialValue 为流启动时发送的第一个值
      * */
-    val uiState: StateFlow<MainActivityUiState> = userDataStore.userData
+    val uiState: StateFlow<MainActivityUiState> = userDataStore.userDataStateFlow
         .map {
             Log.d(
                 TAG,
-                "uiState:map: \nuserId: ${it.userId} \ntoken: ${it.token} \nidentification: ${it.identification} \nlastLoginTime: ${it.loginTimestamp}"
+                "uiState: ${it}"
             )
             when (it.identification) {
                 AppRole.USER -> MainActivityUiState.UserLogin

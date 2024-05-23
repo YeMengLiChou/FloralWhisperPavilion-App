@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import cn.li.feature.employee.order.navigation.EMPLOYEE_ORDER_ROUTE
 import cn.li.feature.home.navigation.HOME_ROUTE
 import cn.li.feature.menu.navigation.MENU_ROUTE
-import cn.li.feature.mine.navigation.MineNavigationRoute
+import cn.li.feature.mine.navigation.MineNestedNavRoute
 import cn.li.feature.shop.navigation.SHOP_ROUTE
 import cn.li.feature.userorder.navigation.USER_ORDER_ROUTE
 import cn.li.model.constant.AppRole
@@ -27,6 +27,13 @@ const val PERMISSION_EMPLOYEE = 2
 
 /**
  * 顶层导航目的地
+ * @param selectIcon 选中时的图标
+ * @param unselectIcon 未选中时的图标
+ * @param iconText 底部栏显示的文本
+ * @param role 当 [AppRole] 匹配时才能显示
+ * @param route 对应的路由名称
+ * @param rank 顺序
+ * @param isNestedGraph 是否为嵌套图
  * */
 enum class TopLevelDestination(
     val selectIcon: ImageVector,
@@ -35,6 +42,7 @@ enum class TopLevelDestination(
     val role: Int,
     val route: String,
     val rank: Int,
+    val isNestedGraph: Boolean = false,
 ) {
     /**
      * 用户-首页
@@ -81,8 +89,9 @@ enum class TopLevelDestination(
         unselectIcon = Icons.Outlined.Person,
         iconText = "我的",
         role = AppRole.USER,
-        route = MineNavigationRoute.route,
+        route = MineNestedNavRoute.route,
         rank = 1.shl(3),
+        isNestedGraph = true,
     ),
 
     /**

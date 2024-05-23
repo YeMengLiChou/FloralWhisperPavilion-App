@@ -1,9 +1,7 @@
 package cn.li.network.di
 
+import android.util.Log
 import cn.li.datastore.FwpPreferencesDataStore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
 import javax.inject.Inject
@@ -15,8 +13,12 @@ import javax.inject.Inject
 class AuthInterceptor @Inject constructor(
     private val dataStore: FwpPreferencesDataStore
 ) : Interceptor {
+    private companion object {
+        const val TAG = "AuthIntercept"
+    }
+
     override fun intercept(chain: Interceptor.Chain): Response {
-        val token = dataStore.userData.value.token
+        val token = dataStore.userDataStateFlow.value.token
 
         // token 存在时才加请求头
         val request = if (token.isNotBlank()) {
@@ -34,6 +36,7 @@ class AuthInterceptor @Inject constructor(
         response.headers["authorization"]
             ?.takeIf { it.isNotBlank() }
             ?.let {
+                Log.d(TAG, "intercept token: $it")
                 dataStore.updateJwtToken(it)
             }
         return response

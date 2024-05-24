@@ -18,4 +18,5 @@ dependencies {
     api(libs.androidx.compose.ui.util)
     api(libs.coil.kt.compose)
     api(libs.androidx.contraintLayout.compose)
+    api(libs.androidx.activity.compose)
 }

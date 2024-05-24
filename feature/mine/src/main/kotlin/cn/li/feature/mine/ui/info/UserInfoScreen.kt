@@ -3,6 +3,7 @@
 package cn.li.feature.mine.ui.info
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,8 +28,9 @@ import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Female
 import androidx.compose.material.icons.outlined.Male
 import androidx.compose.material.icons.outlined.NoAccounts
-import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -57,12 +58,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.isDigitsOnly
+import cn.li.core.ui.base.BottomSheetImagePicker
 import cn.li.core.ui.base.ClearableTextFiled
+import cn.li.core.ui.base.LoadingBottomSheetLayout
 import cn.li.datastore.UserPreferences
 import cn.li.datastore.copy
 import cn.li.feature.mine.UserInfoUiState
 import cn.li.network.dto.user.UserLoginResult
 import coil.compose.SubcomposeAsyncImage
+
 
 /**
  * ”用户信息“ 界面
@@ -82,15 +86,17 @@ internal fun UserInfoScreen(
     val snackbarHostState = remember {
         SnackbarHostState()
     }
-    
+    // 加载状态
     val loading = uiState == UserInfoUiState.Loading
 
+    // 提示更新状态
     LaunchedEffect(key1 = uiState) {
         when (uiState) {
             UserInfoUiState.Loading -> snackbarHostState.showSnackbar(
                 "更新中",
                 duration = SnackbarDuration.Indefinite
             )
+
             is UserInfoUiState.Success -> snackbarHostState.showSnackbar(uiState.msg)
             is UserInfoUiState.Failed -> snackbarHostState.showSnackbar(uiState.msg)
             else -> {
@@ -98,14 +104,21 @@ internal fun UserInfoScreen(
             }
         }
     }
+
     val userData = userDataState.value
-    Surface(modifier = modifier.fillMaxSize()) {
+
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        color = Color(0xfff0f0f0),
+        contentColor = Color.White,
+    ) {
         Box(modifier = Modifier.fillMaxSize()) {
+            // 底部显示
             SnackbarHost(
                 hostState = snackbarHostState,
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
-
+            // 更新电话号码
             var phoneUpdateDialogState by remember(userData) {
                 mutableStateOf(false)
             }
@@ -113,7 +126,8 @@ internal fun UserInfoScreen(
                 mutableStateOf(userData.phone)
             }
 
-            PhoneUpdateDialog(show = phoneUpdateDialogState,
+            PhoneUpdateDialog(
+                show = phoneUpdateDialogState,
                 phone = changedPhone,
                 onValueChange = {
                     changedPhone = it
@@ -122,7 +136,7 @@ internal fun UserInfoScreen(
                     phoneUpdateDialogState = false
                 },
                 onConfirm = {
-                    // TODO: 更新
+                    onUpdatePhone(changedPhone)
                     phoneUpdateDialogState = false
                 },
                 onDismiss = {
@@ -130,146 +144,134 @@ internal fun UserInfoScreen(
                 }
             )
 
-            Column(modifier = Modifier.systemBarsPadding()) {
-                TopBar(onBackClick = onBackClick)
-                Box(
-                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 12.dp)
-                ) {
-                    Card(
+            // 底部弹窗的状态
+            var bottomSheetPickerState by remember {
+                mutableStateOf(false)
+            }
+            // 拍照选择
+            BottomSheetImagePicker(
+                show = bottomSheetPickerState,
+                onTakePicture = {
+                    Log.d("BottomSheetImagePicker", "UserInfoScreen: take picture: $it")
+                },
+                onDismissRequest = {
+                    bottomSheetPickerState = false
+                },
+                onSelectedImage = {
+                    Log.d("BottomSheetImagePicker", "UserInfoScreen: getSelectedImage: $it ")
+                },
+                title = {
+                    Text(
+                        text = "更新头像",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        fontSize = 16.sp
+                    )
+                }
+            )
+
+            LoadingBottomSheetLayout(show = false, loading = loading) {
+                Column(modifier = Modifier.systemBarsPadding()) {
+                    TopBar(onBackClick = onBackClick)
+                    Box(
+                        modifier = Modifier.padding(vertical = 16.dp, horizontal = 12.dp)
                     ) {
-                        val divider = @Composable {
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 8.dp),
-                                color = Color(0xfff0f0f0)
+                        Card(
+                            colors = CardDefaults.cardColors().copy(
+                                containerColor = Color.White
                             )
-                        }
-
-                        UserInfoChipItem(
-                            keyText = "头像",
-                            onClick = { /*TODO*/ },
-                            modifier = Modifier.height(84.dp)
                         ) {
-                            if (userData.avatar.isNotBlank()) {
-                                SubcomposeAsyncImage(
-                                    model = userData.avatar,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .aspectRatio(1f)
-                                        .clip(CircleShape)
+                            val divider = @Composable {
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 8.dp),
+                                    color = Color(0xfff0f0f0)
                                 )
-                            } else {
-                                Text(text = "未设置")
                             }
-                        }
 
-                        divider()
-
-
-                        UserInfoChipItem(keyText = "用户名", onClick = { /*TODO*/ }) {
-                            if (userData.username.isNotBlank()) {
-                                Text(text = userData.username)
-                            } else {
-                                Text(text = "未设置")
-                            }
-                        }
-
-                        divider()
-
-                        var dropdownMenuState by remember {
-                            mutableStateOf(false)
-                        }
-
-                        var selectItem by remember {
-                            mutableIntStateOf(userData.sex)
-                        }
-
-                        UserInfoChipItem(keyText = "性别", onClick = {
-                            dropdownMenuState = !dropdownMenuState
-                        }) {
-                            Text(
-                                text = when (userData.sex) {
-                                    UserLoginResult.SEX_UNSPECIFIED -> "未知"
-                                    UserLoginResult.SEX_MALE -> "男"
-                                    UserLoginResult.SEX_FEMALE -> "女"
-                                    else -> throw NoSuchFieldException("没有 ${userData.sex} 常量")
+                            UserInfoChipItem(
+                                keyText = "头像",
+                                onClick = {
+                                    bottomSheetPickerState = true
+                                },
+                                modifier = Modifier.height(84.dp)
+                            ) {
+                                if (userData.avatar.isNotBlank()) {
+                                    SubcomposeAsyncImage(
+                                        model = userData.avatar,
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .aspectRatio(1f)
+                                            .clip(CircleShape)
+                                    )
+                                } else {
+                                    Text(text = "未设置")
                                 }
-                            )
-                            DropdownMenu(expanded = dropdownMenuState, onDismissRequest = {
-                                // TODO 更新数据
-                                dropdownMenuState = false
-                            }) {
-                                DropdownMenuItem(text = {
-                                    Text(
-                                        text = "保持神秘",
-                                        textAlign = TextAlign.End,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                }, onClick = {
-                                    selectItem = UserLoginResult.SEX_UNSPECIFIED
+                            }
+
+                            divider()
+
+                            UserInfoChipItem(
+                                keyText = "用户名",
+                                onClick = { /*TODO*/ },
+                                modifier = Modifier.height(56.dp)
+                            ) {
+                                if (userData.username.isNotBlank()) {
+                                    Text(text = userData.username)
+                                } else {
+                                    Text(text = "未设置")
+                                }
+                            }
+
+                            divider()
+
+                            var dropdownMenuState by remember {
+                                mutableStateOf(false)
+                            }
+                            var selectedSex by remember {
+                                mutableIntStateOf(userData.sex)
+                            }
+                            // 性别项
+                            UserSexChipItem(
+                                sex = selectedSex,
+                                dropdownMenuShowState = dropdownMenuState,
+                                onShowRequest = {
                                     dropdownMenuState = false
-                                }, trailingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.NoAccounts,
-                                        contentDescription = null
-                                    )
-                                })
-                                DropdownMenuItem(text = {
-                                    Text(
-                                        text = "男",
-                                        textAlign = TextAlign.End,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
                                 },
-                                    onClick = {
-                                        selectItem = UserLoginResult.SEX_MALE
-                                        dropdownMenuState = false
-                                    },
-                                    trailingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Outlined.Male,
-                                            contentDescription = null
-                                        )
-                                    })
-                                DropdownMenuItem(text = {
-                                    Text(
-                                        text = "女",
-                                        textAlign = TextAlign.End,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
+                                onDismissRequest = {
+                                    dropdownMenuState = false
                                 },
-                                    onClick = {
-                                        selectItem = UserLoginResult.SEX_FEMALE
-                                        dropdownMenuState = false
-                                    },
-                                    trailingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Outlined.Female,
-                                            contentDescription = null
-                                        )
-                                    })
+                                onUpdateSex = {
+                                    selectedSex = it
+                                    onUpdateSex(it)
+                                },
+                                modifier = Modifier.height(56.dp)
+                            )
 
+
+                            divider()
+                            UserInfoChipItem(
+                                keyText = "手机号",
+                                onClick = {
+                                    phoneUpdateDialogState = true
+                                },
+                                modifier = Modifier.height(56.dp)
+                            ) {
+                                if (userData.phone.isNotBlank()) {
+                                    Text(text = userData.phone)
+                                } else {
+                                    Text(text = "未设置")
+                                }
                             }
-                        }
-
-                        divider()
-                        UserInfoChipItem(keyText = "手机号", onClick = {
-                            phoneUpdateDialogState = true
-                        }) {
-                            if (userData.phone.isNotBlank()) {
-                                Text(text = userData.phone)
-                            } else {
-                                Text(text = "未设置")
+                            divider()
+                            UserInfoChipItem(keyText = "注册时间", enabled = false) {
+                                Text(text = userData.createTime.toString())
                             }
-                        }
-                        divider()
-                        UserInfoChipItem(keyText = "注册时间", enabled = false) {
-                            Text(text = userData.createTime.toString())
-                        }
 
-                        divider()
-                        UserInfoChipItem(keyText = "最后更新时间", enabled = false) {
-                            Text(text = userData.updateTime.toString())
+                            divider()
+                            UserInfoChipItem(keyText = "最后更新时间", enabled = false) {
+                                Text(text = userData.updateTime.toString())
+                            }
                         }
                     }
                 }
@@ -331,7 +333,11 @@ private fun UserInfoChipItem(
             value()
             Spacer(modifier = Modifier.width(4.dp))
             if (enabled) {
-                Icon(imageVector = Icons.Outlined.ChevronRight, contentDescription = null)
+                Icon(
+                    imageVector = Icons.Outlined.ChevronRight,
+                    contentDescription = null,
+                    tint = Color.LightGray
+                )
             } else {
                 Spacer(modifier = Modifier.width(24.dp))
             }
@@ -340,7 +346,7 @@ private fun UserInfoChipItem(
 }
 
 /**
- * 更新电话号码的
+ * 更新电话号码的对话框
  * */
 @Composable
 private fun PhoneUpdateDialog(
@@ -389,6 +395,91 @@ private fun PhoneUpdateDialog(
                 )
             }
         )
+    }
+}
+
+
+@Composable
+private fun UserSexChipItem(
+    sex: Int,
+    dropdownMenuShowState: Boolean,
+    onShowRequest: () -> Unit,
+    onDismissRequest: () -> Unit,
+    onUpdateSex: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    UserInfoChipItem(
+        keyText = "性别",
+        onClick = {
+            if (dropdownMenuShowState) onDismissRequest()
+            else onShowRequest()
+        },
+        modifier = modifier
+    ) {
+        Text(
+            text = when (sex) {
+                UserLoginResult.SEX_UNSPECIFIED -> "未知"
+                UserLoginResult.SEX_MALE -> "男"
+                UserLoginResult.SEX_FEMALE -> "女"
+                else -> throw NoSuchFieldException("没有 $sex 常量")
+            }
+        )
+        DropdownMenu(
+            expanded = dropdownMenuShowState,
+            onDismissRequest = {
+                onDismissRequest()
+            }) {
+            DropdownMenuItem(text = {
+                Text(
+                    text = "保持神秘",
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }, onClick = {
+                onDismissRequest()
+                onUpdateSex(UserLoginResult.SEX_UNSPECIFIED)
+            }, trailingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.NoAccounts,
+                    contentDescription = null
+                )
+            })
+            DropdownMenuItem(text = {
+                Text(
+                    text = "男",
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+                onClick = {
+                    onDismissRequest()
+                    onUpdateSex(UserLoginResult.SEX_MALE)
+                },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.Male,
+                        contentDescription = null
+                    )
+                })
+            DropdownMenuItem(text = {
+                Text(
+                    text = "女",
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+                onClick = {
+                    onDismissRequest()
+                    onUpdateSex(UserLoginResult.SEX_FEMALE)
+                },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.Female,
+                        contentDescription = null
+                    )
+                })
+
+        }
     }
 }
 

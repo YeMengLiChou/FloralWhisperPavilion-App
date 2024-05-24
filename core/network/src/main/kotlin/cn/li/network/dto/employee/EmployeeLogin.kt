@@ -1,7 +1,8 @@
 package cn.li.network.dto.employee
 
-import cn.li.datastore.UserPreferences
-import cn.li.datastore.copy
+
+import cn.li.datastore.proto.UserPreferences
+import cn.li.datastore.proto.copy
 import cn.li.model.constant.AppRole
 import cn.li.model.ext.toTimestamp
 
@@ -39,7 +40,7 @@ data class EmployeeLoginResult(
 }
 
 fun UserPreferences.update(data: EmployeeLoginResult): UserPreferences {
-    return copy {
+    return this.copy {
         userId = data.id
         username = data.username
         avatar = data.avatar ?: ""

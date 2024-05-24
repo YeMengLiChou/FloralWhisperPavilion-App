@@ -16,8 +16,10 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.CallAdapter
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
+import java.lang.reflect.Type
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 

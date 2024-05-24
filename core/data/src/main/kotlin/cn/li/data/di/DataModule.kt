@@ -1,6 +1,8 @@
 package cn.li.data.di
 
+import cn.li.data.repository.ApiCommonRepository
 import cn.li.data.repository.ApiUserRepository
+import cn.li.data.repository.CommonRepository
 import cn.li.data.repository.UserRepository
 import cn.li.data.util.ConnectivityManagerNetworkMonitor
 import cn.li.data.util.NetworkMonitor
@@ -27,4 +29,9 @@ internal abstract class DataModule {
     abstract fun providesApiUserRepository(
         repository: ApiUserRepository
     ): UserRepository
+
+    @Binds
+    abstract fun providesApiCommonRepository(
+        repository: ApiCommonRepository
+    ): CommonRepository
 }

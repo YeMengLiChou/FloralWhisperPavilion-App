@@ -8,7 +8,7 @@ import cn.li.common.network.Dispatcher
 import cn.li.common.network.FwpDispatcher
 import cn.li.common.network.di.ApplicationScope
 import cn.li.datastore.FwpUserPreferencesSerializer
-import cn.li.datastore.UserPreferences
+import cn.li.datastore.proto.UserPreferences
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -2,6 +2,7 @@ package cn.li.datastore
 
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.Serializer
+import cn.li.datastore.proto.UserPreferences
 import com.google.protobuf.InvalidProtocolBufferException
 import java.io.InputStream
 import java.io.OutputStream

@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException
 import cn.li.common.network.di.ApplicationScope
+import cn.li.datastore.proto.UserPreferences
+import cn.li.datastore.proto.copy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,6 +32,8 @@ class FwpPreferencesDataStore @Inject constructor(
      * */
     val userDataStateFlow
         get() = userPreferences.data.map {
+            Log.d(TAG, "user-data: $it")
+            currentUserData = it
             it
         }.stateIn(
             scope = scope,
@@ -38,6 +42,8 @@ class FwpPreferencesDataStore @Inject constructor(
         )
 
     val userDataFlow get() = userPreferences.data
+
+    var currentUserData: UserPreferences = UserPreferences.getDefaultInstance()
 
     /**
      * 更新用户数据，token 和 id
@@ -77,12 +83,18 @@ class FwpPreferencesDataStore @Inject constructor(
     }
 
 
-    fun updateUserData(block: (UserPreferences) -> UserPreferences) {
+    fun updateUserData(
+        onSuccess: (suspend () -> Unit)? = null,
+        onError: (suspend (Throwable) -> Unit)? = null,
+        block: (UserPreferences) -> UserPreferences,
+    ) {
         scope.launch(Dispatchers.IO) {
             try {
                 userPreferences.updateData(block)
+                onSuccess?.invoke()
             } catch (e: IOException) {
                 Log.e("FwpPreferencesDataStore", "updateUserData: ", e)
+                onError?.invoke(e)
             }
         }
     }
@@ -104,6 +116,21 @@ class FwpPreferencesDataStore @Inject constructor(
             }
         }
     }
+
+//    fun updatePassword(password: String) {
+//        Log.d(TAG, "updatePassword: $password")
+//        scope.launch(Dispatchers.IO) {
+//            try {
+//                userPreferences.updateData {
+//                    it.copy {
+//                        this.password = password
+//                    }
+//                }
+//            } catch (e: IOException) {
+//                Log.e("FwpPreferencesDataStore", "updateUserData: ", e)
+//            }
+//        }
+//    }
 
 
 }

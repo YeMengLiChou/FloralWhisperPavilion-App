@@ -1,7 +1,8 @@
 package cn.li.network.dto.user
 
-import cn.li.datastore.UserPreferences
-import cn.li.datastore.copy
+
+import cn.li.datastore.proto.UserPreferences
+import cn.li.datastore.proto.copy
 import cn.li.model.constant.AppRole
 import cn.li.model.ext.toTimestamp
 
@@ -16,6 +17,7 @@ data class UserLoginResult(
     val updateTime: String,
     val phone: String?,
     val sex: String?,
+    val nickname: String,
 ) {
     companion object {
         /**
@@ -40,5 +42,6 @@ fun UserPreferences.update(data: UserLoginResult): UserPreferences {
         identification = AppRole.USER
         loginTimestamp = System.currentTimeMillis()
         shopId = 0
+        nickname = data.nickname
     }
 }

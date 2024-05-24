@@ -18,10 +18,11 @@ class AuthInterceptor @Inject constructor(
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        val token = dataStore.userDataStateFlow.value.token
+        val token = dataStore.currentUserData.token
 
         // token 存在时才加请求头
         val request = if (token.isNotBlank()) {
+            Log.d(TAG, "intercept: add-token: $token")
             chain.request()
                 .newBuilder().apply {
                     addHeader("authorization", token)
@@ -36,9 +37,11 @@ class AuthInterceptor @Inject constructor(
         response.headers["authorization"]
             ?.takeIf { it.isNotBlank() }
             ?.let {
-                Log.d(TAG, "intercept token: $it")
+                Log.d(TAG, "intercept save-token: $it")
                 dataStore.updateJwtToken(it)
-            }
+            } ?: {
+                Log.d(TAG, "intercept: no-token")
+        }
         return response
     }
 }

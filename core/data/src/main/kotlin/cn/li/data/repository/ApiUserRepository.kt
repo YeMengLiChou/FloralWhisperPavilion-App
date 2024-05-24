@@ -1,7 +1,7 @@
 package cn.li.data.repository
 
 import cn.li.datastore.FwpPreferencesDataStore
-import cn.li.datastore.UserPreferences
+import cn.li.datastore.proto.UserPreferences
 import cn.li.network.api.employee.EmployeeDataSource
 import cn.li.network.api.user.UserDataSource
 import cn.li.network.dto.ApiResult
@@ -9,6 +9,7 @@ import cn.li.network.dto.employee.EmployeeLoginRegisterDTO
 import cn.li.network.dto.employee.EmployeeLoginResult
 import cn.li.network.dto.user.UserLoginAndRegisterDTO
 import cn.li.network.dto.user.UserLoginResult
+import cn.li.network.dto.user.UserUpdateDTO
 import cn.li.network.retrofit.datasource.RetrofitEmployeeDataSource
 import cn.li.network.retrofit.datasource.RetrofitUserDataSource
 import javax.inject.Inject
@@ -46,6 +47,17 @@ internal class ApiUserRepository @Inject constructor(
         return employeeDataSource.employeeLogin(EmployeeLoginRegisterDTO(username, password))
     }
 
+    override suspend fun updateUserInfo(userUpdateDTO: UserUpdateDTO): ApiResult<String?> {
+        return userDataSource.updateUserInfo(userUpdateDTO)
+    }
+
+    override suspend fun getUserInfo(id: Long): ApiResult<UserLoginResult> {
+        return userDataSource.getUserInfo(id)
+    }
+
+    override suspend fun updateUserPassword(old: String, new: String): ApiResult<String> {
+        return userDataSource.updateUserPassword(old, new)
+    }
 
     /**
      * 更新用户数据缓存

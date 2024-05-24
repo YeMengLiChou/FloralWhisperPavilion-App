@@ -3,8 +3,15 @@ package cn.li.network.api.user
 import cn.li.network.dto.ApiResult
 import cn.li.network.dto.user.UserLoginAndRegisterDTO
 import cn.li.network.dto.user.UserLoginResult
+import cn.li.network.dto.user.UserUpdateDTO
+import cn.li.network.dto.user.UserUpdatePasswordDTO
+import com.google.protobuf.Api
+import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Query
 
 
 internal interface UserApi {
@@ -28,6 +35,17 @@ internal interface UserApi {
      * */
     @POST("user/user/register")
     suspend fun userRegister(@Body dto: UserLoginAndRegisterDTO): ApiResult<String>
+
+
+    @PUT("user/user/update")
+    suspend fun updateUserInfo(@Body dto: UserUpdateDTO): ApiResult<String?>
+
+
+    @POST("user/user/updatePassword")
+    suspend fun updatePassword(@Body dto: UserUpdatePasswordDTO): ApiResult<Nothing>
+
+    @GET("user/user/getUserById")
+    suspend fun getUserInfo(@Query("id") id: Long): ApiResult<UserLoginResult>
 }
 
 interface UserDataSource {
@@ -35,5 +53,11 @@ interface UserDataSource {
     suspend fun userLogin(dto: UserLoginAndRegisterDTO): ApiResult<UserLoginResult>
 
     suspend fun userRegister(dto: UserLoginAndRegisterDTO): ApiResult<String>
+
+    suspend fun updateUserInfo(dto: UserUpdateDTO): ApiResult<String?>
+
+    suspend fun updateUserPassword(old: String, new: String): ApiResult<String>
+
+    suspend fun getUserInfo(id: Long): ApiResult<UserLoginResult>
 
 }

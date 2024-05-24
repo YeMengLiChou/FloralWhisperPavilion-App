@@ -61,8 +61,8 @@ import androidx.core.text.isDigitsOnly
 import cn.li.core.ui.base.BottomSheetImagePicker
 import cn.li.core.ui.base.ClearableTextFiled
 import cn.li.core.ui.base.LoadingBottomSheetLayout
-import cn.li.datastore.UserPreferences
-import cn.li.datastore.copy
+import cn.li.datastore.proto.UserPreferences
+import cn.li.datastore.proto.copy
 import cn.li.feature.mine.UserInfoUiState
 import cn.li.network.dto.user.UserLoginResult
 import coil.compose.SubcomposeAsyncImage
@@ -75,12 +75,14 @@ import coil.compose.SubcomposeAsyncImage
  * */
 @Composable
 internal fun UserInfoScreen(
-    userDataState: State<UserPreferences>,
+    userData: UserPreferences,
     uiState: UserInfoUiState,
     onBackClick: () -> Unit,
     onUpdatePhone: (String) -> Unit,
     onUpdateSex: (Int) -> Unit,
-    onUpdateAvatar: () -> Unit,
+    onUpdateAvatar: (Any) -> Unit,
+    onUpdateNickname: (String) -> Unit,
+    onErrorMessage: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val snackbarHostState = remember {
@@ -105,7 +107,6 @@ internal fun UserInfoScreen(
         }
     }
 
-    val userData = userDataState.value
 
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -139,9 +140,6 @@ internal fun UserInfoScreen(
                     onUpdatePhone(changedPhone)
                     phoneUpdateDialogState = false
                 },
-                onDismiss = {
-                    phoneUpdateDialogState = false
-                }
             )
 
             // 底部弹窗的状态
@@ -149,16 +147,25 @@ internal fun UserInfoScreen(
                 mutableStateOf(false)
             }
             // 拍照选择
+            // TODO: 加入裁剪功能
             BottomSheetImagePicker(
                 show = bottomSheetPickerState,
-                onTakePicture = {
-                    Log.d("BottomSheetImagePicker", "UserInfoScreen: take picture: $it")
+                onTakePicture = { bitmap ->
+                    if (bitmap == null) {
+                        onErrorMessage("取消选择图片")
+                    } else {
+                        onUpdateAvatar(bitmap)
+                    }
                 },
                 onDismissRequest = {
                     bottomSheetPickerState = false
                 },
-                onSelectedImage = {
-                    Log.d("BottomSheetImagePicker", "UserInfoScreen: getSelectedImage: $it ")
+                onSelectedImage = { uri ->
+                    if (uri == null) {
+                        onErrorMessage("取消拍摄")
+                    } else {
+                        onUpdateAvatar(uri)
+                    }
                 },
                 title = {
                     Text(
@@ -169,6 +176,28 @@ internal fun UserInfoScreen(
                     )
                 }
             )
+
+            // 更新用户昵称
+            var nicknameDialogState by remember {
+                mutableStateOf(false)
+            }
+            var changedNickname by remember {
+                mutableStateOf("")
+            }
+
+            NicknameUpdateDialog(
+                show = nicknameDialogState,
+                nickname = changedNickname,
+                onValueChange = {
+                    changedNickname = it
+                },
+                onDismissRequest = {
+                    nicknameDialogState = false
+                    changedNickname = ""
+                },
+                onConfirm = {
+                    onUpdateNickname(changedNickname)
+                })
 
             LoadingBottomSheetLayout(show = false, loading = loading) {
                 Column(modifier = Modifier.systemBarsPadding()) {
@@ -212,12 +241,14 @@ internal fun UserInfoScreen(
                             divider()
 
                             UserInfoChipItem(
-                                keyText = "用户名",
-                                onClick = { /*TODO*/ },
+                                keyText = "昵称",
+                                onClick = {
+                                    nicknameDialogState = true
+                                },
                                 modifier = Modifier.height(56.dp)
                             ) {
-                                if (userData.username.isNotBlank()) {
-                                    Text(text = userData.username)
+                                if (userData.nickname.isNotBlank()) {
+                                    Text(text = userData.nickname)
                                 } else {
                                     Text(text = "未设置")
                                 }
@@ -355,7 +386,6 @@ private fun PhoneUpdateDialog(
     onValueChange: (String) -> Unit,
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
 ) {
     if (show) {
         val error = if (phone.isEmpty()) {
@@ -376,7 +406,7 @@ private fun PhoneUpdateDialog(
                 TextButton(onClick = onConfirm, enabled = updateEnabled) { Text(text = "更新") }
             },
             dismissButton = {
-                TextButton(onClick = onDismiss) { Text(text = "取消") }
+                TextButton(onClick = onDismissRequest) { Text(text = "取消") }
             },
             title = {
                 Text(text = "更新手机号")
@@ -387,6 +417,62 @@ private fun PhoneUpdateDialog(
                         Text(text = "请输入手机号")
                     },
                     value = phone,
+                    onValueChange = onValueChange,
+                    isError = !updateEnabled,
+                    supportingText = {
+                        Text(text = error ?: "")
+                    }
+                )
+            }
+        )
+    }
+}
+
+/**
+ * 更新用户名的对话框
+ * */
+@Composable
+private fun NicknameUpdateDialog(
+    show: Boolean,
+    nickname: String,
+    onValueChange: (String) -> Unit,
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    if (show) {
+        val error = if (nickname.isEmpty()) {
+            "昵称不能为空"
+        } else if (nickname.length > 20) {
+            "昵称过长"
+        } else {
+            null
+        }
+
+        val updateEnabled = error == null
+
+        AlertDialog(
+            onDismissRequest = onDismissRequest,
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onConfirm()
+                        onDismissRequest()
+                    },
+                    enabled = updateEnabled
+                ) { Text(text = "更新") }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismissRequest) { Text(text = "取消") }
+            },
+            title = {
+                Text(text = "更新昵称")
+            },
+            text = {
+                ClearableTextFiled(
+                    label = {
+                        Text(text = "请输入新的昵称")
+                    },
+                    value = nickname,
                     onValueChange = onValueChange,
                     isError = !updateEnabled,
                     supportingText = {
@@ -488,11 +574,13 @@ private fun UserSexChipItem(
 @Composable
 private fun UserInfoScreenPreview() {
     UserInfoScreen(
-        userDataState = mutableStateOf(UserPreferences.getDefaultInstance().copy { }),
+        userData = UserPreferences.getDefaultInstance(),
         uiState = UserInfoUiState.Nothing,
         onBackClick = {},
         onUpdatePhone = {},
         onUpdateAvatar = {},
-        onUpdateSex = {}
+        onUpdateSex = {},
+        onUpdateNickname = {},
+        onErrorMessage = {}
     )
 }

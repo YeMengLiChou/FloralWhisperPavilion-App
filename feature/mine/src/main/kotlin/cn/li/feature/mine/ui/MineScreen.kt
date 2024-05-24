@@ -1,6 +1,5 @@
 package cn.li.feature.mine.ui
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -56,9 +55,8 @@ import cn.li.core.ui.start
 import cn.li.core.ui.theme.GradientColors
 import cn.li.core.ui.theme.LightGreenColor
 import cn.li.core.ui.verticalCenter
-import cn.li.datastore.UserPreferences
+import cn.li.datastore.proto.UserPreferences
 import cn.li.feature.mine.UserMineUiState
-import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -217,12 +215,12 @@ internal fun UserInfo(
                 .layoutId("spacer")
         )
 
-        val username = if (userPreferences == null) {
+        val nickname = if (userPreferences == null) {
             "未登录"
-        } else if (userPreferences.username.isBlank()) {
+        } else if (userPreferences.nickname.isBlank()) {
             "未设置"
         } else {
-            userPreferences.username
+            userPreferences.nickname
         }
         val phoneNumber = if (userPreferences == null || userPreferences.phone.isBlank()) {
             null
@@ -236,7 +234,7 @@ internal fun UserInfo(
                 .layoutId("column"),
             verticalArrangement = Arrangement.Center
         ) {
-            Text(text = username, fontSize = TextUnit(20f, TextUnitType.Sp))
+            Text(text = nickname, fontSize = TextUnit(20f, TextUnitType.Sp))
             phoneNumber?.let {
                 Text(text = it)
             }

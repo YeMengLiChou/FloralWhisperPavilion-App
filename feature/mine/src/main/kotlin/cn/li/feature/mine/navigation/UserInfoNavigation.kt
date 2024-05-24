@@ -17,13 +17,14 @@ import cn.li.model.constant.DEEP_LINK_PREFIX
 /**
  * 用户信息 界面路由项
  * */
-object UserInfoNavRoute: NavigationRoute {
+object UserInfoNavRoute : NavigationRoute {
     override val routePrefix: String
         get() = "user_mine/info"
     override val deepLinkPrefix: String
         get() = "${DEEP_LINK_PREFIX}/${routePrefix}"
 
-    fun NavHostController.navigateToUserInfo(options: NavOptions) = navigate(this@UserInfoNavRoute.route, options)
+    fun NavHostController.navigateToUserInfo(options: NavOptions) =
+        navigate(this@UserInfoNavRoute.route, options)
 
     fun NavGraphBuilder.userInfoScreen(
         navController: NavController
@@ -44,17 +45,18 @@ object UserInfoNavRoute: NavigationRoute {
 internal fun UserInfoRoute(
     onBackClick: () -> Unit,
     viewModel: UserMineViewModel = hiltViewModel()
-
 ) {
-    val userPreferences = viewModel.userData.collectAsStateWithLifecycle()
+    val userPreferences by viewModel.userData.collectAsStateWithLifecycle()
     val uiState by viewModel.userInfoUiState.collectAsStateWithLifecycle()
 
     UserInfoScreen(
         uiState = uiState,
-        userDataState = userPreferences,
+        userData = userPreferences,
         onBackClick = onBackClick,
         onUpdatePhone = viewModel::updatePhone,
         onUpdateSex = viewModel::updateSex,
-        onUpdateAvatar = viewModel::updateAvatar
+        onUpdateAvatar = viewModel::updateAvatar,
+        onUpdateNickname = viewModel::updateNickname,
+        onErrorMessage = viewModel::userMineError,
     )
 }

@@ -46,6 +46,7 @@ internal object NetworkModule {
             .connectTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
+            .addInterceptor(authInterceptor)
             .addInterceptor(
                 HttpLoggingInterceptor()
                     .apply {
@@ -54,7 +55,6 @@ internal object NetworkModule {
                         }
                     }
             )
-            .addInterceptor(authInterceptor)
             .build()
     }
 

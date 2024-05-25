@@ -2,8 +2,6 @@
 
 package cn.li.feature.mine.ui.info
 
-import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,7 +27,6 @@ import androidx.compose.material.icons.outlined.Female
 import androidx.compose.material.icons.outlined.Male
 import androidx.compose.material.icons.outlined.NoAccounts
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -60,9 +57,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.text.isDigitsOnly
 import cn.li.core.ui.base.BottomSheetImagePicker
 import cn.li.core.ui.base.ClearableTextFiled
-import cn.li.core.ui.base.LoadingBottomSheetLayout
+import cn.li.core.ui.loading.LoadingBottomSheetLayout
 import cn.li.datastore.proto.UserPreferences
-import cn.li.datastore.proto.copy
 import cn.li.feature.mine.UserInfoUiState
 import cn.li.network.dto.user.UserLoginResult
 import coil.compose.SubcomposeAsyncImage
@@ -199,7 +195,11 @@ internal fun UserInfoScreen(
                     onUpdateNickname(changedNickname)
                 })
 
-            LoadingBottomSheetLayout(show = false, loading = loading) {
+            LoadingBottomSheetLayout(
+                show = false,
+                loading = true,
+                loadingText = "更新中"
+            ) {
                 Column(modifier = Modifier.systemBarsPadding()) {
                     TopBar(onBackClick = onBackClick)
                     Box(
@@ -569,7 +569,6 @@ private fun UserSexChipItem(
     }
 }
 
-@SuppressLint("UnrememberedMutableState")
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun UserInfoScreenPreview() {

@@ -58,8 +58,9 @@ interface NavigationRoute {
     /**
      * 将参数转换为路由
      * */
-    fun Map<String, Any>.toRoute(prefix: String): String {
+    fun Map<String, Any?>.toRoute(prefix: String): String {
         return toList()
+            .filter { it.second != null }
             .joinTo(StringBuilder(), separator = "&", prefix = "${prefix}?") {
                 "${it.first}=${it.second}"
             }.toString()

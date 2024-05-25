@@ -1,5 +1,7 @@
 package cn.li.network.dto.user
 
+import kotlin.reflect.jvm.internal.impl.util.ModuleVisibilityHelper.EMPTY
+
 /**
  * 地址簿新增DTO
  * @param consignee 收货人
@@ -13,7 +15,7 @@ package cn.li.network.dto.user
  * @param districtName 区级名称(nullable)
  * @param label 标签(nullable)
  * */
-data class AddressBookAddDTO (
+data class AddressBookAddDTO(
     val consignee: String,
     val sex: Short,
     val phone: String,
@@ -25,7 +27,23 @@ data class AddressBookAddDTO (
     val districtName: String?,
     val detail: String,
     val label: String?
-)
+) {
+    companion object {
+        val EMPTY = AddressBookAddDTO(
+            consignee = "",
+            sex = -1,
+            phone = "",
+            provinceCode = null,
+            provinceName = null,
+            cityCode = null,
+            cityName = null,
+            districtCode =  null,
+            districtName = null,
+            label = null,
+            detail = "",
+        )
+    }
+}
 
 /**
  * 地址簿更新DTO
@@ -41,7 +59,7 @@ data class AddressBookAddDTO (
  * @param districtName 区级名称(nullable)
  * @param label 标签(nullable)
  * */
-data class AddressBookUpdateDTO (
+data class AddressBookUpdateDTO(
     val id: Long,
     val consignee: String,
     val sex: Short,
@@ -72,7 +90,7 @@ data class AddressBookUpdateDTO (
  * @param label 标签(nullable)
  * @param isDefault 是否为默认 0否1是
  * */
-data class AddressBookDTO (
+data class AddressBookDTO(
     val id: Long,
     val userId: Long,
     val consignee: String,
@@ -88,3 +106,23 @@ data class AddressBookDTO (
     val label: String?,
     val isDefault: Short,
 )
+
+/**
+ * 转为 [AddressBookUpdateDTO]
+ * */
+fun AddressBookDTO.toUpdateDTO(): AddressBookUpdateDTO {
+    return AddressBookUpdateDTO(
+        id = id,
+        consignee = consignee,
+        sex = sex,
+        phone = phone,
+        provinceName = provinceName,
+        provinceCode = provinceCode,
+        cityName = cityName,
+        cityCode = cityCode,
+        districtName = districtName,
+        districtCode = districtCode,
+        label = label,
+        detail = detail
+    )
+}

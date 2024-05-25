@@ -1,5 +1,6 @@
 package cn.li.feature.mine.navigation
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -13,6 +14,7 @@ import cn.li.feature.mine.UserMineViewModel
 import cn.li.feature.mine.ui.info.UserInfoScreen
 import cn.li.model.NavigationRoute
 import cn.li.model.constant.DEEP_LINK_PREFIX
+import androidx.compose.runtime.remember as remember
 
 /**
  * 用户信息 界面路由项
@@ -26,16 +28,23 @@ object UserInfoNavRoute : NavigationRoute {
     fun NavHostController.navigateToUserInfo(options: NavOptions) =
         navigate(this@UserInfoNavRoute.route, options)
 
+    @SuppressLint("UnrememberedGetBackStackEntry")
     fun NavGraphBuilder.userInfoScreen(
-        navController: NavController
+        navController: NavController,
+        parentRoute: String
     ) {
         composable(
             route = this@UserInfoNavRoute.route,
             arguments = this@UserInfoNavRoute.arguments,
             deepLinks = this@UserInfoNavRoute.deepLinks,
         ) {
+            val backStackEntry = remember {
+                navController.getBackStackEntry(parentRoute)
+            }
+
             UserInfoRoute(
-                onBackClick = navController::popBackStack
+                onBackClick = navController::popBackStack,
+                viewModel = hiltViewModel(backStackEntry)
             )
         }
     }

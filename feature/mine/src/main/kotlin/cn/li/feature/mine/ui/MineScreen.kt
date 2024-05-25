@@ -143,6 +143,9 @@ fun MineScreen(
                                 onClick = onAddressManagementNavigation,
                                 leadingIcon = Icons.Outlined.LocationOn,
                                 text = "地址管理",
+                                modifier = Modifier.clickable {
+                                    onAddressManagementNavigation()
+                                }
                             )
                             HorizontalDivider(
                                 color = Color(0xfff0f0f0),

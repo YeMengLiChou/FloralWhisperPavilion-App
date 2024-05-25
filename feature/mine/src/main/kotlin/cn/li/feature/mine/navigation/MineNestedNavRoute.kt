@@ -5,6 +5,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.navigation
 import cn.li.feature.mine.navigation.MineNavigationRoute.mineScreen
+import cn.li.feature.mine.navigation.UserAddressAddNavigation.addAddressScreen
+import cn.li.feature.mine.navigation.UserAddressManageNavigation.addressManageScreen
 import cn.li.feature.mine.navigation.UserInfoNavRoute.userInfoScreen
 import cn.li.model.NavigationRoute
 import cn.li.model.constant.DEEP_LINK_PREFIX
@@ -31,8 +33,23 @@ object MineNestedNavRoute : NavigationRoute {
             arguments = this@MineNestedNavRoute.arguments,
             deepLinks = this@MineNestedNavRoute.deepLinks
         ) {
-            mineScreen(navController = navHostController)
-            userInfoScreen(navController = navHostController)
+
+            mineScreen(
+                navController = navHostController,
+                parentRoute = this@MineNestedNavRoute.route
+            )
+            userInfoScreen(
+                navController = navHostController,
+                parentRoute = this@MineNestedNavRoute.route
+            )
+            addressManageScreen(
+                navHostController = navHostController,
+                parentRoute = this@MineNestedNavRoute.route
+            )
+            addAddressScreen(
+                controller = navHostController,
+                parentRoute = this@MineNestedNavRoute.route
+            )
         }
     }
 }

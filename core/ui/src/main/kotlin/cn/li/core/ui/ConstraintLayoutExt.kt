@@ -12,8 +12,8 @@ fun ConstrainScope.verticalCenter() {
 
 fun ConstrainScope.horizontalCenter() {
 
-    top.linkTo(parent.top)
-    bottom.linkTo(parent.bottom)
+    start.linkTo(parent.start)
+    end.linkTo(parent.end)
 }
 
 fun ConstrainScope.center() {

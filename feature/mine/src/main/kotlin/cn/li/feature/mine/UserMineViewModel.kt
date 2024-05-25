@@ -6,6 +6,8 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cn.li.common.ext.debugId
+import cn.li.data.repository.AddressRepository
 import cn.li.data.repository.CommonRepository
 import cn.li.data.repository.UserRepository
 import cn.li.datastore.FwpPreferencesDataStore
@@ -13,10 +15,16 @@ import cn.li.datastore.proto.UserPreferences
 import cn.li.datastore.proto.copy
 import cn.li.network.dto.onError
 import cn.li.network.dto.onSuccess
+import cn.li.network.dto.user.AddressBookAddDTO
+import cn.li.network.dto.user.AddressBookDTO
+import cn.li.network.dto.user.AddressBookUpdateDTO
 import cn.li.network.dto.user.update
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +34,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
+import javax.inject.Singleton
 
 
 private const val TAG = "UserMineViewModel"
@@ -35,7 +44,8 @@ internal class UserMineViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val userDataSource: FwpPreferencesDataStore,
     private val userRepository: UserRepository,
-    private val commonRepository: CommonRepository
+    private val commonRepository: CommonRepository,
+    private val addressRepository: AddressRepository,
 ) : ViewModel() {
 
     /**
@@ -220,6 +230,131 @@ internal class UserMineViewModel @Inject constructor(
         _userInfoUiState.value = UserInfoUiState.Failed(msg)
     }
 
+    private val _userAddressManageUiState =
+        MutableStateFlow<UserAddressUiState>(UserAddressUiState.Nothing)
+
+    /**
+     * 地址管理界面的状态
+     * */
+    val userAddressUiState = _userAddressManageUiState.asStateFlow()
+
+    /**
+     * 当前缓存的地址信息
+     * */
+    private val _currentAddressList = MutableStateFlow<List<AddressBookDTO>>(emptyList())
+
+    val currentAddressList = _currentAddressList.asStateFlow()
+
+    private var getAddressListJob: Job? = null
+
+    /**
+     * 获取所有的地址项
+     * @param refresh 是否从api更新，false为从 [_currentAddressList] 返回数据
+     * @param silent 是否发送 加载的 UI State
+     * */
+    fun getAddressBookList(refresh: Boolean = true, silent: Boolean = false) {
+        if (!silent) {
+            _userAddressManageUiState.value = UserAddressUiState.Loading
+        }
+
+        // 非强制刷新时且已经有数据，则直接返回该数据
+        if (!refresh) {
+            if (_currentAddressList.value.isNotEmpty()) {
+                _userAddressManageUiState.value =
+                    UserAddressUiState.FetchSuccess(_currentAddressList.value)
+                return
+            }
+        }
+
+        getAddressListJob?.cancel(null)
+
+        getAddressListJob =
+            viewModelScope.launch(
+                Dispatchers.IO
+            ) {
+                runCatching {
+                    addressRepository.getUserAddressBooksList()
+                }.onSuccess { apiResult ->
+                    apiResult
+                        .onSuccess {
+                            // TODO: 缓存到本地数据库
+                            _currentAddressList.value = it!!
+                            _userAddressManageUiState.value = UserAddressUiState.FetchSuccess(it)
+                        }?.onError {
+                            _userAddressManageUiState.value = UserAddressUiState.Failed(it)
+                        }
+                }.onFailure {
+                    // 协程取消无需提醒
+                    if (it is CancellationException) return@onFailure
+                    _userAddressManageUiState.value =
+                        UserAddressUiState.Failed(it.message ?: "获取失败")
+                }
+            }
+    }
+
+
+    private var addAddressBookItemJob: Job? = null
+
+    /**
+     * 添加地址项
+     * */
+    fun addAddressBookItem(item: AddressBookAddDTO) {
+        _userAddressManageUiState.value = UserAddressUiState.Loading
+        addAddressBookItemJob?.cancel()
+
+        addAddressBookItemJob = viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                addressRepository.addNewAddress(item)
+            }.onSuccess { apiResult ->
+                apiResult.onSuccess {
+                    _userAddressManageUiState.value = UserAddressUiState.Success
+                }?.onError {
+                    Log.d(TAG, "addAddressBookItem-failed: $it")
+                    _userAddressManageUiState.value = UserAddressUiState.Failed(it)
+                }
+            }.onFailure {
+                // 协程取消无需提醒
+                if (it is CancellationException) return@onFailure
+
+                Log.d(TAG, "addAddressBookItem-failed: $it")
+                _userAddressManageUiState.value =
+                    UserAddressUiState.Failed(it.message ?: "添加失败")
+            }
+        }
+    }
+
+    private var updateAddressBookItemJob: Job? = null
+
+    fun updateAddressBookItem(item: AddressBookUpdateDTO) {
+        _userAddressManageUiState.value = UserAddressUiState.Loading
+        updateAddressBookItemJob?.cancel()
+
+        updateAddressBookItemJob = viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                addressRepository.updateAddress(item)
+            }.onSuccess { apiResult ->
+                apiResult.onSuccess {
+                    _userAddressManageUiState.value = UserAddressUiState.Success
+                }?.onError {
+                    Log.d(TAG, "updateAddressBookItem-failed: $it")
+                    _userAddressManageUiState.value = UserAddressUiState.Failed(it)
+                }
+            }.onFailure {
+                // 协程取消无需提醒
+                if (it is CancellationException) return@onFailure
+
+                Log.d(TAG, "updateAddressBookItem-failed: $it")
+                _userAddressManageUiState.value =
+                    UserAddressUiState.Failed(it.message ?: "更新失败")
+            }
+        }
+    }
+
+
+    override fun onCleared() {
+        super.onCleared()
+        viewModelScope.cancel()
+    }
 }
 
 
@@ -259,4 +394,21 @@ internal sealed interface UserInfoUiState {
     data class Success(val msg: String) : UserInfoUiState
 
     data class Failed(val msg: String) : UserInfoUiState
+}
+
+
+/**
+ * 地址管理界面的状态
+ * */
+internal sealed interface UserAddressUiState {
+    data object Nothing : UserAddressUiState
+    data object Loading : UserAddressUiState
+
+    /**
+     * 获取数据成功
+     * */
+    data class FetchSuccess(val data: List<AddressBookDTO>) : UserAddressUiState
+
+    data object Success : UserAddressUiState
+    data class Failed(val msg: String) : UserAddressUiState
 }

@@ -1,5 +1,6 @@
 package cn.li.feature.mine.navigation
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,6 +15,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.navOptions
 import cn.li.feature.mine.UserMineViewModel
+import cn.li.feature.mine.navigation.UserAddressManageNavigation.navigateToAddressManage
 import cn.li.feature.mine.navigation.UserInfoNavRoute.navigateToUserInfo
 import cn.li.feature.mine.ui.MineScreen
 import cn.li.model.NavigationRoute
@@ -37,14 +39,20 @@ internal object MineNavigationRoute : NavigationRoute {
      * */
     fun NavHostController.navigateToMine(navOptions: NavOptions) = navigate(route, navOptions)
 
+    @SuppressLint("UnrememberedGetBackStackEntry")
     fun NavGraphBuilder.mineScreen(
-        navController: NavHostController
+        navController: NavHostController,
+        parentRoute: String,
     ) {
         composable(
             route = this@MineNavigationRoute.route,
             arguments = this@MineNavigationRoute.arguments,
             deepLinks = this@MineNavigationRoute.deepLinks
         ) {
+            val backStackEntry = remember {
+                navController.getBackStackEntry(parentRoute)
+            }
+            val viewModel: UserMineViewModel = hiltViewModel(backStackEntry)
             MineRoute(
                 onPullRefresh = {},
                 onUserInfoNavigation = {
@@ -53,8 +61,16 @@ internal object MineNavigationRoute : NavigationRoute {
                         restoreState = true
                     })
                 },
-                onAddressManagementNavigation = {},
-                onSettingsNavigation = {}
+                onAddressManagementNavigation = {
+                    navController.navigateToAddressManage(
+                        selectedKey = null, // 无需选中操作
+                        options = navOptions {
+                            launchSingleTop = true
+                            restoreState = true
+                        })
+                },
+                onSettingsNavigation = {},
+                viewModel = viewModel
             )
         }
     }
@@ -80,6 +96,7 @@ private fun MineRoute(
         uiState = uiState,
         refreshing = refreshing,
         onPullRefresh = {
+            // TODO: 实现刷新操作
             scope.launch {
                 refreshing = true
                 delay(1000)

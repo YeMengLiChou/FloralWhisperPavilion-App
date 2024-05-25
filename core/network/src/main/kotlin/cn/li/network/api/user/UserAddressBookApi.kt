@@ -75,6 +75,25 @@ internal interface UserAddressBookApi {
      *
      * see: [文档](http://8.134.200.196:8080/doc.html#/user/%E5%9C%B0%E5%9D%80%E7%B0%BF%E6%8E%A5%E5%8F%A3/list)
      * */
-    @GET("user/addressBook/list")
+    @POST("user/addressBook/list")
     suspend fun getUserAddressBooksList(): ApiResult<List<AddressBookDTO>>
+}
+
+
+interface UserAddressBookDataSource {
+    suspend fun addNewAddress(dto: AddressBookAddDTO): ApiResult<Nothing>
+
+    suspend fun updateAddress(dto: AddressBookUpdateDTO): ApiResult<Nothing>
+
+    suspend fun getAddressBookById(id: Long): ApiResult<AddressBookAddDTO>
+
+    suspend fun deleteAddressBooksByIds(ids: List<Long>): ApiResult<Nothing>
+
+    suspend fun getDefaultAddressBook(): ApiResult<AddressBookDTO>
+
+
+    suspend fun setDefaultAddressBook(id: Long): ApiResult<Nothing>
+
+    suspend fun getUserAddressBooksList(): ApiResult<List<AddressBookDTO>>
+
 }

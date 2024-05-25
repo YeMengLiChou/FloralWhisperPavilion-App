@@ -2,7 +2,10 @@ package cn.li.network.di
 
 import cn.li.network.api.common.CommonDataSource
 import cn.li.network.api.employee.EmployeeDataSource
+import cn.li.network.api.user.UserAddressBookApi
+import cn.li.network.api.user.UserAddressBookDataSource
 import cn.li.network.api.user.UserDataSource
+import cn.li.network.retrofit.datasource.RetrofitAddressDataSource
 import cn.li.network.retrofit.datasource.RetrofitCommonDataSource
 import cn.li.network.retrofit.datasource.RetrofitEmployeeDataSource
 import cn.li.network.retrofit.datasource.RetrofitUserDataSource
@@ -33,4 +36,8 @@ abstract class DataSourceModule {
     ): CommonDataSource
 
 
+    @Binds
+    abstract fun bindsRetrofitAddressDataSource(
+        retrofitAddressDataSource: RetrofitAddressDataSource
+    ): UserAddressBookDataSource
 }

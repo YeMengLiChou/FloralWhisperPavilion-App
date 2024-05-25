@@ -1,12 +1,12 @@
-package cn.li.core.ui.base
+package cn.li.core.ui.loading
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,6 +43,7 @@ import cn.li.core.ui.theme.LightGreenColor
 fun LoadingBottomSheetLayout(
     show: Boolean,
     loading: Boolean,
+    modifier: Modifier = Modifier,
     loadingText: String = "加载中",
     sheetContent: @Composable () -> Unit = {},
     content: @Composable () -> Unit,
@@ -54,7 +55,6 @@ fun LoadingBottomSheetLayout(
         })
 
     LaunchedEffect(key1 = loading, key2 = show) {
-        Log.d("LoadingBottomSheetLayout", "show: $show, loading: $loading ")
         if (loading || show) {
             state.show()
         } else {
@@ -70,6 +70,7 @@ fun LoadingBottomSheetLayout(
                 sheetContent()
             }
         },
+        modifier = modifier,
         sheetState = state,
         content = content
     )
@@ -85,7 +86,8 @@ private fun LoadingIndicator(
     Row(
         modifier = Modifier
             .padding(vertical = 16.dp, horizontal = 16.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .height(64.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
@@ -95,7 +97,7 @@ private fun LoadingIndicator(
             color = progressColor
         )
         Spacer(modifier = Modifier.width(12.dp))
-        Text(text = loadingText)
+        Text(text = loadingText, color = Color.Gray)
     }
 }
 

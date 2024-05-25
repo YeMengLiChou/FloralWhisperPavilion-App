@@ -17,20 +17,3 @@ interface CommonRepository {
     suspend fun uploadFile(uri: Uri): ApiResult<String>
 }
 
-@Singleton
-class ApiCommonRepository @Inject constructor(
-    private val dataSource: RetrofitCommonDataSource
-) : CommonRepository {
-
-    override suspend fun uploadFile(file: File): ApiResult<String> {
-        return dataSource.uploadFile(file)
-    }
-
-    override suspend fun uploadFile(bitmap: Bitmap): ApiResult<String> {
-        return dataSource.uploadFile(bitmap)
-    }
-
-    override suspend fun uploadFile(uri: Uri): ApiResult<String> {
-        return dataSource.uploadFile(uri)
-    }
-}

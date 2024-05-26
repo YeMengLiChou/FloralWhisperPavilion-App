@@ -1,29 +1,57 @@
 package cn.li.feature.menu.navigation
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavController
+import androidx.compose.runtime.remember
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import cn.li.feature.menu.ui.MenuScreen
+import cn.li.feature.menu.ui.MenuViewModel
+import cn.li.model.NavigationRoute
+import cn.li.model.constant.DEEP_LINK_PREFIX
 
-const val MENU_ROUTE = "menu_route"
+object MenuNavigation : NavigationRoute {
+    override val routePrefix: String
+        get() = "menu/display"
+    override val deepLinkPrefix: String
+        get() = "$DEEP_LINK_PREFIX/$routePrefix"
 
-/**
- * 导航到 **点单** 界面
- * */
-fun NavController.navigateToMenu(navOptions: NavOptions) = navigate(MENU_ROUTE, navOptions)
 
+    /**
+     * 导航到 **点单** 界面
+     * */
+    fun NavHostController.navigateToMenu(navOptions: NavOptions) {
+        navigate(this@MenuNavigation.route, navOptions)
+    }
 
-fun NavGraphBuilder.menuScreen() {
-    composable(
-        route = MENU_ROUTE
+    @SuppressLint("UnrememberedGetBackStackEntry")
+    fun NavGraphBuilder.menuScreen(
+        navController: NavHostController,
+        parentRoute: String,
     ) {
-        MenuRoute()
+        composable(
+            route = this@MenuNavigation.route,
+            arguments = this@MenuNavigation.arguments,
+            deepLinks = this@MenuNavigation.deepLinks
+        ) {
+            val backStackEntry = remember {
+                navController.getBackStackEntry(parentRoute)
+            }
+            val viewModel: MenuViewModel = hiltViewModel(backStackEntry)
+            MenuRoute(
+                viewModel = viewModel,
+            )
+        }
     }
 }
 
+
 @Composable
-fun MenuRoute() {
-    MenuScreen()
+fun MenuRoute(
+    viewModel: MenuViewModel
+) {
+    MenuScreen(onSettlementNavigate = {}, onSearchNavigation = {})
 }

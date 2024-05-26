@@ -16,7 +16,8 @@ import cn.li.feature.login.navigation.LoginNavigationRoute.navigateToLogin
 import cn.li.feature.login.navigation.RegisterNavigationRoute
 import cn.li.feature.login.navigation.RegisterNavigationRoute.navigateToRegister
 import cn.li.feature.login.navigation.RegisterNavigationRoute.registerScreen
-import cn.li.feature.menu.navigation.menuScreen
+import cn.li.feature.menu.navigation.MenuNavigation.menuScreen
+import cn.li.feature.menu.navigation.MenuNestedNavGraph.menuNestedNavGraph
 import cn.li.feature.mine.navigation.MineNestedNavRoute.nestedMineNavGraph
 import cn.li.feature.shop.navigation.shopScreen
 import cn.li.feature.userorder.navigation.userOrderScreen
@@ -52,7 +53,8 @@ fun FwpNavigationHost(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier,
-        ) {
+    ) {
+
         homeScreen(onLoginNavigation = {
             navController.navigateToLogin(
                 username = "",
@@ -61,7 +63,8 @@ fun FwpNavigationHost(
             )
         })
 
-        menuScreen()
+        menuNestedNavGraph(navController)
+
         userOrderScreen()
         employeeOrderScreen()
         shopScreen()

@@ -14,16 +14,11 @@ import androidx.compose.material.icons.rounded.Store
 import androidx.compose.ui.graphics.vector.ImageVector
 import cn.li.feature.employee.order.navigation.EMPLOYEE_ORDER_ROUTE
 import cn.li.feature.home.navigation.HOME_ROUTE
-import cn.li.feature.menu.navigation.MENU_ROUTE
+import cn.li.feature.menu.navigation.MenuNestedNavGraph
 import cn.li.feature.mine.navigation.MineNestedNavRoute
 import cn.li.feature.shop.navigation.SHOP_ROUTE
 import cn.li.feature.userorder.navigation.USER_ORDER_ROUTE
 import cn.li.model.constant.AppRole
-
-
-const val PERMISSION_USER = 1
-
-const val PERMISSION_EMPLOYEE = 2
 
 /**
  * 顶层导航目的地
@@ -64,8 +59,9 @@ enum class TopLevelDestination(
         unselectIcon = Icons.Outlined.ShoppingCart,
         iconText = "点单",
         role = AppRole.USER,
-        route = MENU_ROUTE,
+        route = MenuNestedNavGraph.route,
         rank = 1.shl(1),
+        isNestedGraph = true,
     ),
 
     /**

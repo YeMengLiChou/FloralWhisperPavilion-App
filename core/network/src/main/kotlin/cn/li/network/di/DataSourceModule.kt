@@ -5,10 +5,14 @@ import cn.li.network.api.employee.EmployeeDataSource
 import cn.li.network.api.user.UserAddressBookApi
 import cn.li.network.api.user.UserAddressBookDataSource
 import cn.li.network.api.user.UserDataSource
+import cn.li.network.api.user.UserShopDataSource
+import cn.li.network.api.user.UserShoppingCartDataSource
 import cn.li.network.retrofit.datasource.RetrofitAddressDataSource
 import cn.li.network.retrofit.datasource.RetrofitCommonDataSource
 import cn.li.network.retrofit.datasource.RetrofitEmployeeDataSource
 import cn.li.network.retrofit.datasource.RetrofitUserDataSource
+import cn.li.network.retrofit.datasource.RetrofitUserShopCartDataSource
+import cn.li.network.retrofit.datasource.RetrofitUserShopDataSource
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -40,4 +44,15 @@ abstract class DataSourceModule {
     abstract fun bindsRetrofitAddressDataSource(
         retrofitAddressDataSource: RetrofitAddressDataSource
     ): UserAddressBookDataSource
+
+
+    @Binds
+    abstract fun bindsRetrofitUserShopDataSource(
+        retrofitUserShopDataSource: RetrofitUserShopDataSource
+    ): UserShopDataSource
+
+    @Binds
+    abstract fun bindsUserShopCartDataSource(
+        retrofitUserShopCartDataSource: RetrofitUserShopCartDataSource
+    ): UserShoppingCartDataSource
 }

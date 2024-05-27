@@ -7,6 +7,7 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Query
 
 /**
@@ -20,7 +21,7 @@ internal interface UserShoppingCartApi {
      * see: [文档](http://8.134.200.196:8080/doc.html#/user/%E8%B4%AD%E7%89%A9%E8%BD%A6%E7%9B%B8%E5%85%B3%E6%8E%A5%E5%8F%A3/add)
      */
     @POST("user/shoppingCar/add")
-    suspend fun addDishToShoppingCart(@Body dto: ShoppingCartAddDTO): ApiResult<Nothing>
+    suspend fun addCommodityToShoppingCart(@Body dto: ShoppingCartAddDTO): ApiResult<Nothing>
 
     /**
      * 清空购物车
@@ -38,16 +39,32 @@ internal interface UserShoppingCartApi {
      * see: [文档](http://8.134.200.196:8080/doc.html#/user/%E8%B4%AD%E7%89%A9%E8%BD%A6%E7%9B%B8%E5%85%B3%E6%8E%A5%E5%8F%A3/list_1)
      * */
     @GET("user/shoppingCar/list")
-    suspend fun getShoppingCartList(@Query("shopId") shopId: Long): ApiResult<ShoppingCartDTO>
+    suspend fun getShoppingCartList(@Query("shopId") shopId: Long): ApiResult<List<ShoppingCartDTO>>
 
     /**
      * 修改购物车商品信息
      *
      *
      * */
-    @POST("user/shoppingCar/updateNumber")
-    suspend fun updateShoppingCartDishCount(
-        @Query("shoppingCartId") shoppingCartId: Long,
-        @Query("count") count: Int
+    @PUT("user/shoppingCar/update")
+    suspend fun updateShoppingCartCommodityCount(
+        @Query("ids") ids: String,
+        @Query("nums") counts: String
     ): ApiResult<Nothing>
+}
+
+
+interface UserShoppingCartDataSource {
+
+    suspend fun addCommodityToShoppingCart(dto: ShoppingCartAddDTO): ApiResult<Nothing>
+
+    suspend fun clearShoppingCart(shopId: Long): ApiResult<Nothing>
+
+    suspend fun getShoppingCartList(shopId: Long): ApiResult<List<ShoppingCartDTO>>
+
+    suspend fun updateShoppingCartCommodityCount(
+        ids: String,
+        counts: String
+    ): ApiResult<Nothing>
+
 }

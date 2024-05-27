@@ -1,13 +1,20 @@
 package cn.li.feature.menu.navigation
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import androidx.navigation.navOptions
+import cn.li.feature.menu.navigation.ChooseShopNavigation.navigateToChooseShop
 import cn.li.feature.menu.ui.MenuScreen
 import cn.li.feature.menu.ui.MenuViewModel
 import cn.li.model.NavigationRoute
@@ -41,7 +48,13 @@ object MenuNavigation : NavigationRoute {
                 navController.getBackStackEntry(parentRoute)
             }
             val viewModel: MenuViewModel = hiltViewModel(backStackEntry)
+
             MenuRoute(
+                onChooseShopNavigate = {
+                    navController.navigateToChooseShop(
+                        shopIdKey = null,
+                        navOptions = navOptions { launchSingleTop = true })
+                },
                 viewModel = viewModel,
             )
         }
@@ -51,7 +64,34 @@ object MenuNavigation : NavigationRoute {
 
 @Composable
 fun MenuRoute(
+    onChooseShopNavigate: () -> Unit,
     viewModel: MenuViewModel
 ) {
-    MenuScreen(onSettlementNavigate = {}, onSearchNavigation = {})
+    val selectedShopInfo by viewModel.selectedShopInfo.collectAsStateWithLifecycle()
+
+    val uiState by viewModel.menuUiState.collectAsStateWithLifecycle()
+
+    // 没有选择商店，导航到选择门店
+    if (selectedShopInfo == null) {
+        onChooseShopNavigate()
+    }
+
+    SideEffect {
+        Log.d("Test", "MenuRoute: ${viewModel.selectedShopInfo.value}")
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.getShopGoodsWithCartInfo()
+    }
+
+    MenuScreen(
+        uiState = uiState,
+        onSettlementNavigate = {
+            // TODO：下单界面
+        },
+        onSearchNavigation = {
+
+        },
+        onChooseShopNavigate = onChooseShopNavigate
+    )
 }

@@ -1,5 +1,6 @@
 package cn.li.feature.menu.ui.cart
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -85,6 +86,7 @@ fun FloatingCartLayout(
     val scope = rememberCoroutineScope()
 
     Box(modifier) {
+        // 购物车明细 BottomSheet
         ModalBottomSheetLayout(
             sheetContent = {
                 Text(
@@ -95,6 +97,7 @@ fun FloatingCartLayout(
                         .clip(RoundedCornerShape(8.dp))
                         .padding(vertical = 2.dp)
                 )
+                // 自定义内容
                 sheetContent()
                 Spacer(
                     modifier = Modifier
@@ -105,10 +108,10 @@ fun FloatingCartLayout(
             sheetState = sheetState,
             sheetShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
         ) {
-            content()
+            content() // 主内容
         }
 
-        if (showCart) {
+        AnimatedVisibility(visible = showCart) {
             FloatingDetails(
                 badge = badgeCount,
                 amount = amount,

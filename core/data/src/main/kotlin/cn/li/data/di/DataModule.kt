@@ -3,9 +3,13 @@ package cn.li.data.di
 import cn.li.data.repository.AddressRepository
 import cn.li.data.repository.ApiAddressRepository
 import cn.li.data.repository.ApiCommonRepository
+import cn.li.data.repository.ApiShopRepository
 import cn.li.data.repository.ApiUserRepository
+import cn.li.data.repository.ApiUserShopCartRepository
 import cn.li.data.repository.CommonRepository
+import cn.li.data.repository.ShopRepository
 import cn.li.data.repository.UserRepository
+import cn.li.data.repository.UserShopCartRepository
 import cn.li.data.util.ConnectivityManagerNetworkMonitor
 import cn.li.data.util.NetworkMonitor
 import dagger.Binds
@@ -40,4 +44,14 @@ internal abstract class DataModule {
     abstract fun providesApiAddressRepository(
         repository: ApiAddressRepository
     ): AddressRepository
+
+    @Binds
+    abstract fun providesApiShopRepository(
+        repository: ApiShopRepository
+    ): ShopRepository
+
+    @Binds
+    abstract fun providesApiUserShopCartRepository(
+        repository: ApiUserShopCartRepository
+    ): UserShopCartRepository
 }

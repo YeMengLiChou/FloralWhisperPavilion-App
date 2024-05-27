@@ -43,7 +43,8 @@ import kotlinx.coroutines.launch
 /**
  * 侧边栏滚动+内容栏滚动，联动
  * @param tabsText 标签栏显示的内容
- * @param itemsWithTabs 标签栏对应的内容，注意与标签栏相同的顺序
+ * @param stickyHeaders 吸附效果的头部
+ * @param items 内容
  * @param modifier
  * @param selectedTabsColor 选中的标签背景颜色
  * @param selectedTabsTextColor 选中的标签文字颜色
@@ -56,7 +57,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun TabsScrollableLazyColumn(
     tabsText: List<String>,
-    itemsWithTabs: List<Pair<@Composable () -> Unit, @Composable () -> Unit>>,
+    stickyHeaders: @Composable (index: Int, tab: String) -> Unit,
+    items: @Composable (index: Int, tab: String) -> Unit,
     modifier: Modifier = Modifier,
     selectedTabsColor: Color = Color.White,
     selectedTabsTextColor: Color = Color.Black,
@@ -73,6 +75,7 @@ fun TabsScrollableLazyColumn(
     var selectedTabsIndex by remember {
         mutableIntStateOf(0)
     }
+
     val scope = rememberCoroutineScope()
 
     // 当前第一个可见的信息
@@ -90,8 +93,10 @@ fun TabsScrollableLazyColumn(
         ) {
             // 右边的滑动需要滚动到对应位置，触发左边的滑动
             LaunchedEffect(key1 = state) {
-                sideTabsScrollState.animateScrollToCenter(state)
-                selectedTabsIndex = state
+                if (tabsText.isNotEmpty()) {
+                    sideTabsScrollState.animateScrollToCenter(state)
+                    selectedTabsIndex = state
+                }
             }
             // 侧边标签栏
             LazyColumn(
@@ -102,7 +107,6 @@ fun TabsScrollableLazyColumn(
                 state = sideTabsScrollState
             ) {
                 tabsText.forEachIndexed { index, text ->
-
                     item {
                         SideTabItem(selected = (selectedTabsIndex == index),
                             text = text,
@@ -130,12 +134,12 @@ fun TabsScrollableLazyColumn(
                     .fillMaxHeight()
                     .background(color = Color.White), state = contentScrollState
             ) {
-                itemsWithTabs.forEach { pair ->
+                tabsText.forEachIndexed { index, tab ->
                     stickyHeader {
-                        pair.first()
+                        stickyHeaders(index, tab)
                     }
                     item {
-                        pair.second()
+                        items(index, tab)
                     }
                 }
             }
@@ -224,38 +228,32 @@ private fun TabsScrollableLazyColumnPreview() {
             add("tab$i")
         }
     }
-    val items = mutableListOf<Pair<@Composable () -> Unit, @Composable () -> Unit>>().apply {
-        for (i in 1..30) {
-            add(@Composable {
-                Text(
-                    text = "tab$i",
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .background(Color.Blue),
-                    color = Color.White
-                )
-            } to {
-                Column(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-
-                    for (j in 0..5) {
-                        Text(
-                            text = "tab$i item$j",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                                .wrapContentSize(Alignment.Center),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            })
-        }
-    }
-
     TabsScrollableLazyColumn(
         tabsText = tabsText,
-        itemsWithTabs = items,
+        stickyHeaders = { _, tab ->
+            Text(
+                text = tab,
+                modifier = Modifier
+                    .padding(4.dp)
+                    .background(Color.Blue),
+                color = Color.White
+            )
+        },
+        items = { index, _ ->
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                for (j in 0..5) {
+                    Text(
+                        text = "tab$index item$j",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .wrapContentSize(Alignment.Center),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
     )
 }

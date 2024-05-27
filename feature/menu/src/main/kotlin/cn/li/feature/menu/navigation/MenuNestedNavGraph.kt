@@ -3,6 +3,7 @@ package cn.li.feature.menu.navigation
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigation
+import cn.li.feature.menu.navigation.ChooseShopNavigation.chooseShopScreen
 import cn.li.feature.menu.navigation.MenuNavigation.menuScreen
 import cn.li.model.NavigationRoute
 import cn.li.model.constant.DEEP_LINK_PREFIX
@@ -28,7 +29,10 @@ object MenuNestedNavGraph : NavigationRoute {
         ) {
 
             menuScreen(navController = navController, parentRoute = this@MenuNestedNavGraph.route)
-
+            chooseShopScreen(
+                navController = navController,
+                parentRoute = this@MenuNestedNavGraph.route
+            )
 
         }
 

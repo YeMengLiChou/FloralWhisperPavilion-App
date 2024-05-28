@@ -42,7 +42,7 @@ internal interface UserOrderApi {
      * See: [文档](http://8.134.200.196:8080/doc.html#/user/%E7%94%A8%E6%88%B7%E8%AE%A2%E5%8D%95%E7%9B%B8%E5%85%B3%E6%8E%A5%E5%8F%A3/page)
      * */
     @GET("user/order/page")
-    suspend fun getHistoryOrders(@QueryMap queryMap: HashMap<String, Any>): ApiResult<ApiPagination<OrderDetailDTO>>
+    suspend fun getHistoryOrders(@QueryMap queryMap: Map<String, Any>): ApiResult<ApiPagination<OrderDetailDTO>>
 
     /**
      * 支付订单
@@ -61,4 +61,17 @@ internal interface UserOrderApi {
      * */
     @POST("user/order/submit")
     suspend fun submitOrder(@Body dto: OrderSubmitDTO): ApiResult<OrderSubmitResultDTO>
+}
+
+
+interface UserOrderDataSource {
+    suspend fun getOrderDetail(id: Long): ApiResult<OrderDetailDTO>
+
+    suspend fun cancelOrder(id: Long): ApiResult<Nothing>
+
+    suspend fun getHistoryOrders(queryMap: Map<String, Any>): ApiResult<ApiPagination<OrderDetailDTO>>
+
+    suspend fun payOrder(): ApiResult<Nothing>
+
+    suspend fun submitOrder(dto: OrderSubmitDTO): ApiResult<OrderSubmitResultDTO>
 }

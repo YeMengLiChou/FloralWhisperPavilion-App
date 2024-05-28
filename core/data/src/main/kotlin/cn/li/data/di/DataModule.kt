@@ -3,8 +3,10 @@ package cn.li.data.di
 import cn.li.data.repository.AddressRepository
 import cn.li.data.repository.ApiAddressRepository
 import cn.li.data.repository.ApiCommonRepository
+import cn.li.data.repository.ApiUserOrderRepository
 import cn.li.data.repository.ApiUserRepository
 import cn.li.data.repository.CommonRepository
+import cn.li.data.repository.UserOrderRepository
 import cn.li.data.repository.UserRepository
 import cn.li.data.util.ConnectivityManagerNetworkMonitor
 import cn.li.data.util.NetworkMonitor
@@ -21,23 +23,28 @@ internal abstract class DataModule {
      * 提供 [ConnectivityManagerNetworkMonitor] 依赖项，与 [NetworkMonitor] 绑定
      * */
     @Binds
-    abstract fun providesNetworkMonitor(
+    abstract fun bindsNetworkMonitor(
         networkMonitor: ConnectivityManagerNetworkMonitor
     ): NetworkMonitor
 
     @Binds
-    abstract fun providesApiUserRepository(
+    abstract fun bindsApiUserRepository(
         repository: ApiUserRepository
     ): UserRepository
 
     @Binds
-    abstract fun providesApiCommonRepository(
+    abstract fun bindsApiCommonRepository(
         repository: ApiCommonRepository
     ): CommonRepository
 
 
     @Binds
-    abstract fun providesApiAddressRepository(
+    abstract fun bindsApiAddressRepository(
         repository: ApiAddressRepository
     ): AddressRepository
+
+    @Binds
+    abstract fun bindsApiUserOrderRepository(
+        repository: ApiUserOrderRepository
+    ): UserOrderRepository
 }

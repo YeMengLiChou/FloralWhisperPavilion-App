@@ -35,7 +35,7 @@ protobuf = "3.25.2"
 androidxComposeMaterial="1.6.7"
 coil = "2.6.0"
 androidxContraintLayoutCompose = "1.1.0-alpha13"
-
+pagingCompose = "3.3.0"
 
 [libraries]
 android-desugarJdkLibs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "androidDesugarJdkLibs" }
@@ -93,6 +93,10 @@ androidx-contraintLayout-compose = { group = "androidx.constraintlayout", name =
 # 网络
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 retrofit-core = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+
+# paging
+paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "pagingCompose" }
+paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "pagingCompose" }
 
 # 图像加载
 coil-kt = { group = "io.coil-kt", name = "coil", version.ref = "coil" }

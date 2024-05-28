@@ -17,7 +17,7 @@ import cn.li.feature.home.navigation.HOME_ROUTE
 import cn.li.feature.menu.navigation.MENU_ROUTE
 import cn.li.feature.mine.navigation.MineNestedNavRoute
 import cn.li.feature.shop.navigation.SHOP_ROUTE
-import cn.li.feature.userorder.navigation.USER_ORDER_ROUTE
+import cn.li.feature.userorder.navigation.UserOrderNavigation
 import cn.li.model.constant.AppRole
 
 
@@ -76,7 +76,7 @@ enum class TopLevelDestination(
         unselectIcon = Icons.Outlined.Bookmarks,
         iconText = "订单",
         role = AppRole.USER,
-        route = USER_ORDER_ROUTE,
+        route = UserOrderNavigation.route,
         rank = 1.shl(2),
 
         ),

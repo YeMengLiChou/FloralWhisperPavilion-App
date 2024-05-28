@@ -23,6 +23,7 @@ dependencies {
     api(project(":core:common"))
     api(project(":core:model"))
     api(project(":core:datastore"))
+    api(libs.paging.runtime)
     implementation(libs.okhttp.logging)
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.jackson)

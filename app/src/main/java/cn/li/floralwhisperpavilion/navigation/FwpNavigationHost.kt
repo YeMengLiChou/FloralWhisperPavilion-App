@@ -19,7 +19,7 @@ import cn.li.feature.login.navigation.RegisterNavigationRoute.registerScreen
 import cn.li.feature.menu.navigation.menuScreen
 import cn.li.feature.mine.navigation.MineNestedNavRoute.nestedMineNavGraph
 import cn.li.feature.shop.navigation.shopScreen
-import cn.li.feature.userorder.navigation.userOrderScreen
+import cn.li.feature.userorder.navigation.UserOrderNavigation.userOrderScreen
 
 private const val TAG = "FwpNavigationHost"
 
@@ -52,7 +52,7 @@ fun FwpNavigationHost(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier,
-        ) {
+    ) {
         homeScreen(onLoginNavigation = {
             navController.navigateToLogin(
                 username = "",
@@ -62,7 +62,7 @@ fun FwpNavigationHost(
         })
 
         menuScreen()
-        userOrderScreen()
+        userOrderScreen(navController)
         employeeOrderScreen()
         shopScreen()
 

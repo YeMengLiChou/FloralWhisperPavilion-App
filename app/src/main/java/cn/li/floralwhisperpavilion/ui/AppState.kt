@@ -21,7 +21,7 @@ import cn.li.feature.home.navigation.navigateToHome
 import cn.li.feature.menu.navigation.navigateToMenu
 import cn.li.feature.mine.navigation.MineNestedNavRoute.navigateToMineGraph
 import cn.li.feature.shop.navigation.navigateToShop
-import cn.li.feature.userorder.navigation.navigateToUserOrder
+import cn.li.feature.userorder.navigation.UserOrderNavigation.navigateToUserOrder
 import cn.li.floralwhisperpavilion.navigation.TopLevelDestination
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted

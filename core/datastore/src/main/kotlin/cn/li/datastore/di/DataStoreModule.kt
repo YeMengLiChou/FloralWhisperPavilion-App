@@ -7,7 +7,9 @@ import androidx.datastore.dataStoreFile
 import cn.li.common.network.Dispatcher
 import cn.li.common.network.FwpDispatcher
 import cn.li.common.network.di.ApplicationScope
+import cn.li.datastore.FwpCachedSerializer
 import cn.li.datastore.FwpUserPreferencesSerializer
+import cn.li.datastore.proto.CachedPreferences
 import cn.li.datastore.proto.UserPreferences
 import dagger.Module
 import dagger.Provides
@@ -45,4 +47,22 @@ object DataStoreModule {
             context.dataStoreFile("user_preferences.pb")
         }
     }
+
+
+    @Provides
+    @Singleton
+    internal fun providesCachedDataStore(
+        @ApplicationContext context: Context,
+        @Dispatcher(FwpDispatcher.IO) ioDispatcher: CoroutineDispatcher,
+        @ApplicationScope scope: CoroutineScope,
+        cachedSerializer: FwpCachedSerializer
+    ): DataStore<CachedPreferences> {
+        return DataStoreFactory.create(
+            serializer = cachedSerializer,
+            scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
+        ) {
+            context.dataStoreFile("cached_preferences.pb")
+        }
+    }
+
 }

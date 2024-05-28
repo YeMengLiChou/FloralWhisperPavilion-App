@@ -44,6 +44,7 @@ data class ShopGoodsDTO(
     val categoryName: String,
     val categoryStatus: Int,
     val categoryType: Int,
+    val sort: Int,
     val items: List<GoodsItem>
 ) {
     companion object {

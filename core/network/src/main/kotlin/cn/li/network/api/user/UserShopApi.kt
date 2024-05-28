@@ -27,6 +27,7 @@ internal interface UserShopApi {
     @GET("user/shop/getStatus")
     suspend fun getStatus(@Query("shopId") shopId: Long): ApiResult<Int>
 
+
     @GET("user/shop/getShopItemList")
     suspend fun getShopGoodsItemList(@Query("shopId") shopId: Long): ApiResult<List<ShopGoodsDTO>>
 }

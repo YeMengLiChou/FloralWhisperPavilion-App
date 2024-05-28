@@ -42,15 +42,17 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -66,15 +68,34 @@ import cn.li.core.ui.loading.LoadingBottomSheetLayout
 import cn.li.core.ui.start
 import cn.li.core.ui.top
 import cn.li.feature.menu.ui.cart.FloatingCartLayout
+import cn.li.model.CommodityItemVO
+import cn.li.model.ShopCommodityItemVO
 import cn.li.network.dto.user.ShopItemDTO
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import kotlin.math.max
 
+
+/**
+ * @param uiState
+ * @param commodityDetailUiState
+ * @param onSettlementNavigate 跳转到下单界面
+ * @param onChooseShopNavigate 跳转到选择店铺界面
+ * @param onAddCommodityToCart 添加商品到购物车
+ * @param onCommodityDetailShow 显示商品详情
+ * @param onCommodityDetailDismiss 隐藏商品详情
+ * @param onSearchNavigation 搜索优先级最低
+ * @param modifier
+ * */
 @Composable
 fun MenuScreen(
     uiState: MenuUiState,
+    commodityDetailUiState: CommodityDetailUiState,
     onSettlementNavigate: () -> Unit,
     onChooseShopNavigate: () -> Unit,
+    onAddCommodityToCart: (itemId: Long, count: Int) -> Unit,
+    onCommodityDetailShow: (id: Long) -> Unit,
+    onCommodityDetailDismiss: () -> Unit,
     onSearchNavigation: () -> Unit, // 搜索优先级最低
     modifier: Modifier = Modifier
 ) {
@@ -119,58 +140,103 @@ fun MenuScreen(
         is MenuUiState.Failed -> {
             // TODO 错误提示
         }
+        else -> {}
     }
 
     Surface(modifier = modifier) {
+        // 底部加载栏
         LoadingBottomSheetLayout(
             loading = loading,
             show = false,
             modifier = Modifier.fillMaxSize()
         ) {
-            FloatingCartLayout(
-                showCart = orderEnabled,
-                badgeCount = cachedData?.cartInfo?.size ?: 0,
-                amount = orderAmount.toString(),
-                onSettlement = onSettlementNavigate,
-                sheetContent = {
+            // 详情
+            CommodityDetailLayout(
+                uiState = commodityDetailUiState,
+                modifier = Modifier.fillMaxSize(),
+                onDismiss = onCommodityDetailDismiss,
+                onDismissRequest = onCommodityDetailDismiss,
+                onAddCartClick = { id, addCount, isSetmeal ->
+                    onAddCommodityToCart(id, addCount)
                 }
-            ) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    MenuTopBar(
-                        modifier = Modifier
-                            .height(IntrinsicSize.Min),
-                        onSetTakeout = {
-
-                        },
-                        onSetSelfTake = {
-
-                        },
-                        onSearchClick = onSearchNavigation,
-                        onShopClick = onChooseShopNavigate,
-                        shopStatus = when (cachedData?.shopInfo?.status) {
-                            ShopItemDTO.STATUS_IN_BUSINESS -> "营业中"
-                            ShopItemDTO.STATUS_NOT_IN_BUSINESS -> "已打烊"
-                            else -> ""
-                        },
-                        shopName = cachedData?.shopInfo?.name ?: "未选择",
-                    )
-                    HorizontalDivider(thickness = 0.5.dp, color = Color(0xfff0f0f0))
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                    ) {
-                        TabsScrollableLazyColumn(
-                            tabsText = categoriesTabText,
-                            modifier = Modifier.fillMaxSize(),
-                            stickyHeaders = { index, tab ->
-                                Text(text = tab)
-                            },
-                            items = { index, tab ->
+            ) { // 购物车
+                FloatingCartLayout(
+                    showCart = orderEnabled,
+                    badgeCount = cachedData?.cartInfo?.size ?: 0,
+                    amount = orderAmount.toString(),
+                    onSettlement = onSettlementNavigate,
+                    sheetContent = {
+                    },
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        MenuTopBar(
+                            modifier = Modifier
+                                .height(IntrinsicSize.Min),
+                            onSetTakeout = {
 
                             },
-                            contentPaddingValues = PaddingValues(top = 4.dp)
+                            onSetSelfTake = {
+
+                            },
+                            onSearchClick = onSearchNavigation,
+                            onShopClick = onChooseShopNavigate,
+                            shopStatus = when (cachedData?.shopInfo?.status) {
+                                ShopItemDTO.STATUS_IN_BUSINESS -> "营业中"
+                                ShopItemDTO.STATUS_NOT_IN_BUSINESS -> "已打烊"
+                                else -> ""
+                            },
+                            shopName = cachedData?.shopInfo?.name ?: "未选择",
                         )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                        ) {
+                            TabsScrollableLazyColumn(
+                                tabsText = categoriesTabText,
+                                modifier = Modifier.fillMaxSize(),
+                                stickyHeaders = { _, tab ->
+                                    Text(
+                                        text = tab,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(Color.White)
+                                            .height(48.dp)
+                                            .padding(start = 16.dp)
+                                            .wrapContentSize(Alignment.CenterStart),
+                                        fontWeight = FontWeight.W600,
+
+                                        )
+                                },
+                                items = { index, _ ->
+                                    cachedData?.goods?.get(index)?.let { goods ->
+                                        Column {
+                                            goods.items.forEach { item ->
+                                                CommodityItem(
+                                                    imageUrl = item.imageUrl,
+                                                    name = item.name,
+                                                    price = "¥${item.price}",
+                                                    cartCount = item.cartCount,
+                                                    description = item.description,
+                                                    onAddClick = {
+                                                        onCommodityDetailShow(item.id)
+
+                                                    },
+                                                    modifier = Modifier
+                                                        .padding(
+                                                            top = 12.dp,
+                                                            start = 16.dp,
+                                                            bottom = 16.dp,
+                                                        )
+                                                        .height(128.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                },
+                                contentPaddingValues = PaddingValues(top = 4.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -322,8 +388,7 @@ object MenuScreenDefaults {
         constrain(imageRef) {
             top()
             start()
-            bottom()
-            height = Dimension.fillToConstraints
+
         }
 
         constrain(nameRef) {
@@ -334,9 +399,11 @@ object MenuScreenDefaults {
         }
 
         constrain(descRef) {
-            top.linkTo(nameRef.bottom, 8.dp)
+            top.linkTo(nameRef.bottom, 4.dp)
             start.linkTo(imageRef.end, 8.dp)
-            end()
+            end(8.dp)
+
+            width = Dimension.fillToConstraints
             horizontalBias = 0f
         }
 
@@ -344,11 +411,12 @@ object MenuScreenDefaults {
             top.linkTo(descRef.bottom, 8.dp)
             start.linkTo(imageRef.end, 8.dp)
             bottom()
-            verticalBias = 1f
+            verticalBias = 0.5f
         }
         constrain(addRef) {
-            end()
-            bottom()
+            end(8.dp)
+            baseline.linkTo(priceRef.baseline)
+            bottom.linkTo(priceRef.bottom)
         }
     }
 
@@ -361,12 +429,22 @@ private fun CommodityItem(
     price: String,
     cartCount: Int, // 选中的数量
     description: String,
-    textMeasurer: TextMeasurer = rememberTextMeasurer(),
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
+    textMeasurer: TextMeasurer = rememberTextMeasurer(),
     constraintSet: ConstraintSet = MenuScreenDefaults.commodityItemConstraintSet()
 ) {
-    ConstraintLayout(modifier = modifier.fillMaxSize(), constraintSet = constraintSet) {
+    ConstraintLayout(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(120.dp)
+            .pointerInput(key1 = onAddClick) {
+                detectTapGestures {
+                    onAddClick()
+                }
+            },
+        constraintSet = constraintSet
+    ) {
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current).data(imageUrl).build(),
             error = {
@@ -376,24 +454,49 @@ private fun CommodityItem(
                         .background(Color.Gray)
                 )
             },
+            contentScale = ContentScale.Crop,
             contentDescription = null,
             modifier = Modifier
                 .layoutId("image")
-                .aspectRatio(1f)
+                .size(100.dp, 100.dp)
+                .aspectRatio(1f),
+
+            )
+
+        Text(
+            text = name,
+            modifier = Modifier.layoutId("name"),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.W400,
+        )
+        Text(
+            text = description,
+            modifier = Modifier.layoutId("desc"),
+            fontSize = 14.sp,
+            color = Color(0xff808080),
+            lineHeight = 16.sp,
+            style = TextStyle(
+//                fontFamily = FontFamily.Monospace
+            )
+        )
+        Text(
+            text = price,
+            modifier = Modifier.layoutId("price"),
+            fontSize = 16.sp,
+            color = Color.Black,
+            fontWeight = FontWeight.Bold,
+//            fontFamily = FontFamily.SansSerif,
         )
 
-        Text(text = name, modifier = Modifier.layoutId("name"))
-        Text(text = description, modifier = Modifier.layoutId("desc"))
-        Text(text = price, modifier = Modifier.layoutId("price"))
-
         val badgeModifier = if (cartCount > 0) {
-            Modifier.drawBadge(
+            Modifier.drawTextBadge(
                 textLayoutResult = textMeasurer.measure(
                     text = if (cartCount > 100) "99+"
                     else cartCount.toString(),
                     style = TextStyle(
-                        fontSize = 12.sp,
+                        fontSize = 8.sp,
                         color = Color.White,
+                        textAlign = TextAlign.Center,
                     )
                 )
             )
@@ -405,12 +508,12 @@ private fun CommodityItem(
             onClick = onAddClick,
             modifier = Modifier
                 .layoutId("add")
+                .then(badgeModifier)
                 .clip(CircleShape)
                 .background(
                     Color(0xffe8c279)
                 )
-                .size(24.dp)
-                .then(badgeModifier),
+                .size(24.dp),
         ) {
             Icon(
                 imageVector = Icons.Outlined.Add,
@@ -421,16 +524,34 @@ private fun CommodityItem(
     }
 }
 
-fun Modifier.drawBadge(
+/**
+ *
+ * 绘制数字角标
+ * */
+fun Modifier.drawTextBadge(
     textLayoutResult: TextLayoutResult,
     badgeColor: Color = Color.Black,
     badgeTextColor: Color = Color.White
 ) = this then Modifier.drawWithCache {
-    onDrawBehind {
+    // 半径大小
+    val radius = max(
+        max(textLayoutResult.size.width, textLayoutResult.size.height).toFloat(),
+        size.width / 5f
+    )
+    onDrawWithContent {
+        drawContent()
         drawCircle(
             color = badgeColor,
-            radius = textLayoutResult.size.width / 2f,
+            radius = radius,
             center = Offset(size.width, 0f)
+        )
+        drawText(
+            textLayoutResult,
+            color = badgeTextColor,
+            topLeft = Offset(
+                size.width - textLayoutResult.size.width / 2,
+                -textLayoutResult.size.height / 2f
+            )
         )
     }
 }
@@ -442,10 +563,10 @@ private fun CommodityItemPreview() {
     CommodityItem(
         imageUrl = "",
         name = "商品名称",
-        price = "￥ 100",
+        price = "￥100",
         cartCount = 1,
-        description = "商品描述",
-        modifier = Modifier.size(300.dp, 100.dp),
+        description = "商品描述12345678912345678912345678912312165465465456ascsadsevhjwvwh",
+        modifier = Modifier.size(300.dp, 120.dp),
         onAddClick = {},
     )
 }

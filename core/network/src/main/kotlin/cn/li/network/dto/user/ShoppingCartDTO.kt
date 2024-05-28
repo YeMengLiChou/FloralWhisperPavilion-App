@@ -4,10 +4,9 @@ package cn.li.network.dto.user
  * 购物车添加商品信息DTO
  * */
 data class ShoppingCartAddDTO(
-    val dishId: Long,
-    val setmealId: Long,
+    val dishId: Long?,
+    val setmealId: Long?,
     val number: Int,
-    val dishFlavor: String,
     val shopId: Long,
 )
 

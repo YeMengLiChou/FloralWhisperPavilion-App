@@ -1,5 +1,6 @@
 package cn.li.core.ui.base
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -14,11 +15,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
@@ -79,9 +83,9 @@ fun TabsScrollableLazyColumn(
     val scope = rememberCoroutineScope()
 
     // 当前第一个可见的信息
-    val state by remember {
+    val state by remember(key1 = contentScrollState) {
         derivedStateOf {
-            contentScrollState.firstVisibleItemIndex
+            contentScrollState.firstVisibleItemIndex / 2
         }
     }
 
@@ -98,48 +102,52 @@ fun TabsScrollableLazyColumn(
                     selectedTabsIndex = state
                 }
             }
-            // 侧边标签栏
-            LazyColumn(
-                modifier = Modifier
-                    .weight(tabsWeight)
-                    .fillMaxHeight()
-                    .background(tabsSideColor),
-                state = sideTabsScrollState
-            ) {
-                tabsText.forEachIndexed { index, text ->
-                    item {
-                        SideTabItem(selected = (selectedTabsIndex == index),
-                            text = text,
-                            selectedColor = selectedTabsColor, // 选中的标签背景颜色
-                            unselectedColor = unselectedTabColor, // 未选中的标签背景颜色
-                            selectedTextColor = selectedTabsTextColor, // 选中的标签文字颜色
-                            unselectedTextColor = unselectedTabTextColor, // 未选中的标签文字颜色
-                            onSelected = {
-                                // 左边的标签栏需要点击，才能触发右边的滑动
-                                scope.launch {
-                                    sideTabsScrollState.animateScrollToCenter(index)
+            if (tabsText.isNotEmpty()) {
+                // 侧边标签栏
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(tabsWeight)
+                        .fillMaxHeight()
+                        .background(tabsSideColor),
+                    state = sideTabsScrollState
+                ) {
+                    tabsText.forEachIndexed { index, text ->
+                        item {
+                            SideTabItem(selected = (selectedTabsIndex == index),
+                                text = text,
+                                selectedColor = selectedTabsColor, // 选中的标签背景颜色
+                                unselectedColor = unselectedTabColor, // 未选中的标签背景颜色
+                                selectedTextColor = selectedTabsTextColor, // 选中的标签文字颜色
+                                unselectedTextColor = unselectedTabTextColor, // 未选中的标签文字颜色
+                                onSelected = {
+                                    // 左边的标签栏需要点击，才能触发右边的滑动
+                                    scope.launch {
+                                        selectedTabsIndex = index
+                                        sideTabsScrollState.animateScrollToCenter(index)
+                                    }
+                                    scope.launch {
+                                        contentScrollState.scrollToItem(index * 2)
+                                    }
                                 }
-                                scope.launch {
-                                    contentScrollState.animateScrollToItem(index)
-                                }
-                            })
+                            )
+                        }
                     }
-
                 }
-            }
-            // 主内容栏
-            LazyColumn(
-                modifier = Modifier
-                    .weight(contentWeight)
-                    .fillMaxHeight()
-                    .background(color = Color.White), state = contentScrollState
-            ) {
-                tabsText.forEachIndexed { index, tab ->
-                    stickyHeader {
-                        stickyHeaders(index, tab)
-                    }
-                    item {
-                        items(index, tab)
+                // 主内容栏
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(contentWeight)
+                        .fillMaxHeight()
+                        .background(color = Color.White),
+                    state = contentScrollState
+                ) {
+                    tabsText.forEachIndexed { index, tab ->
+                        stickyHeader {
+                            stickyHeaders(index, tab)
+                        }
+                        item {
+                            items(index, tab)
+                        }
                     }
                 }
             }
@@ -216,6 +224,17 @@ fun SideTabItem(
                 .fillMaxSize()
                 .wrapContentHeight(Alignment.CenterVertically)
         )
+        AnimatedVisibility(
+            visible = selected, modifier = Modifier .align(Alignment.CenterStart)
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .fillMaxHeight(0.5f)
+                    .clip(RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp))
+                    .background(color = Color(0xFFF9A825))
+            )
+        }
     }
 }
 

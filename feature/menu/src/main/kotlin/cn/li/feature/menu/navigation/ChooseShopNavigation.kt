@@ -66,7 +66,6 @@ object ChooseShopNavigation : NavigationRoute {
             ChooseShopRoute(
                 onBackClick = navController::popBackStack,
                 onSettlementClick = { shopInfo ->
-
                     viewModel.setSelectedShopInfo(shopInfo)
                     navController.popBackStack()
                 },

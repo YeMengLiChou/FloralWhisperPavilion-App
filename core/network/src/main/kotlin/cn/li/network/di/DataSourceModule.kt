@@ -4,12 +4,14 @@ import cn.li.network.api.common.CommonDataSource
 import cn.li.network.api.employee.EmployeeDataSource
 import cn.li.network.api.user.UserAddressBookApi
 import cn.li.network.api.user.UserAddressBookDataSource
+import cn.li.network.api.user.UserCommodityDataSource
 import cn.li.network.api.user.UserDataSource
 import cn.li.network.api.user.UserShopDataSource
 import cn.li.network.api.user.UserShoppingCartDataSource
 import cn.li.network.retrofit.datasource.RetrofitAddressDataSource
 import cn.li.network.retrofit.datasource.RetrofitCommonDataSource
 import cn.li.network.retrofit.datasource.RetrofitEmployeeDataSource
+import cn.li.network.retrofit.datasource.RetrofitUserCommodityDataSource
 import cn.li.network.retrofit.datasource.RetrofitUserDataSource
 import cn.li.network.retrofit.datasource.RetrofitUserShopCartDataSource
 import cn.li.network.retrofit.datasource.RetrofitUserShopDataSource
@@ -55,4 +57,9 @@ abstract class DataSourceModule {
     abstract fun bindsUserShopCartDataSource(
         retrofitUserShopCartDataSource: RetrofitUserShopCartDataSource
     ): UserShoppingCartDataSource
+
+    @Binds
+    abstract fun bindsUserCommodityDataSource(
+        retrofitUserCommodityDataSource: RetrofitUserCommodityDataSource
+    ): UserCommodityDataSource
 }

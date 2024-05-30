@@ -19,7 +19,6 @@ import cn.li.feature.menu.ui.MenuScreen
 import cn.li.feature.menu.ui.MenuViewModel
 import cn.li.model.NavigationRoute
 import cn.li.model.constant.DEEP_LINK_PREFIX
-import kotlin.math.log
 
 object MenuNavigation : NavigationRoute {
     override val routePrefix: String
@@ -38,6 +37,7 @@ object MenuNavigation : NavigationRoute {
     @SuppressLint("UnrememberedGetBackStackEntry")
     fun NavGraphBuilder.menuScreen(
         navController: NavHostController,
+        onChooseAddressNavigate: () -> Unit,
         parentRoute: String,
     ) {
         composable(
@@ -50,12 +50,17 @@ object MenuNavigation : NavigationRoute {
             }
             val viewModel: MenuViewModel = hiltViewModel(backStackEntry)
 
+            it.savedStateHandle.get<Long>("selected")?.let { selectedAddressId ->
+                viewModel.selectedAddressId = selectedAddressId
+            }
+
             MenuRoute(
                 onChooseShopNavigate = {
                     navController.navigateToChooseShop(
                         shopIdKey = null,
                         navOptions = navOptions { launchSingleTop = true })
                 },
+                onChooseAddressNavigate = onChooseAddressNavigate,
                 viewModel = viewModel,
             )
         }
@@ -66,6 +71,7 @@ object MenuNavigation : NavigationRoute {
 @Composable
 fun MenuRoute(
     onChooseShopNavigate: () -> Unit,
+    onChooseAddressNavigate: () -> Unit,
     viewModel: MenuViewModel
 ) {
     val selectedShopInfo by viewModel.selectedShopInfo.collectAsStateWithLifecycle()
@@ -111,7 +117,22 @@ fun MenuRoute(
             viewModel.hideCommodityDetail()
         },
         onAddCommodityToCart = { commodityId, addCount ->
-
-        }
+            viewModel.addCommodityToCart(commodityId, addCount)
+        },
+        onChooseAddressNavigate = {
+            if (viewModel.selectedAddressId == null) {
+                onChooseAddressNavigate()
+            }
+        },
+        onCartCommodityCountIncrease = { itemId: Long, number: Int ->
+            viewModel.changeCartItemCount(itemId, number)
+        },
+        onCartCommodityCountDecrease = { itemId: Long, number: Int ->
+            viewModel.changeCartItemCount(itemId, number)
+        },
+        onCartCommodityDeleteRequest = { itemId: Long ->
+            viewModel.changeCartItemCount(itemId, 0)
+        },
+        onCartClearRequest = viewModel::clearCart
     )
 }

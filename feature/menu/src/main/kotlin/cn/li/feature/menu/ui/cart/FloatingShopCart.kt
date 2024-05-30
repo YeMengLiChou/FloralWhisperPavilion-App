@@ -1,5 +1,9 @@
 package cn.li.feature.menu.ui.cart
 
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -10,6 +14,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,17 +23,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.ModalBottomSheetLayout
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.ModalBottomSheetState
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.ShoppingBag
-//noinspection UsingMaterialAndMaterial3Libraries
+import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -38,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -75,6 +76,7 @@ fun FloatingCartLayout(
     badgeCount: Int,
     amount: String,
     onSettlement: () -> Unit,
+    onClearCart: () -> Unit,
     sheetContent: @Composable ColumnScope.() -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
@@ -89,14 +91,40 @@ fun FloatingCartLayout(
         // 购物车明细 BottomSheet
         ModalBottomSheetLayout(
             sheetContent = {
-                Text(
-                    text = "商品",
-                    textAlign = TextAlign.Center,
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .padding(vertical = 2.dp)
-                )
+                        .background(color = Color(0xfff0f0f0))
+                        .height(IntrinsicSize.Min)
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "已选商品",
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .pointerInput(onClearCart) {
+                                // 点击清除购物车
+                                detectTapGestures {
+                                    onClearCart()
+                                }
+                            },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.DeleteOutline,
+                            contentDescription = null,
+                            tint = Color.Gray,
+                            modifier = Modifier.padding(4.dp)
+                        )
+                        Text(text = "清空购物车", color = Color.Gray)
+                    }
+                }
                 // 自定义内容
                 sheetContent()
                 Spacer(
@@ -106,16 +134,15 @@ fun FloatingCartLayout(
                 )
             },
             sheetState = sheetState,
-            sheetShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            sheetShape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
         ) {
             content() // 主内容
         }
 
-        AnimatedVisibility(visible = showCart) {
+        AnimatedVisibility(visible = showCart, modifier = Modifier.align(Alignment.BottomCenter)) {
             FloatingDetails(
                 badge = badgeCount,
                 amount = amount,
-                modifier = Modifier.align(Alignment.BottomCenter),
                 onSettlement = onSettlement,
                 isExpanded = sheetState.currentValue != ModalBottomSheetValue.Hidden,
                 onDetail = {
@@ -285,6 +312,7 @@ private fun FloatCartPreview() {
             amount = "123",
             sheetContent = {},
             onSettlement = {},
+            onClearCart = {}
         ) {
         }
     }

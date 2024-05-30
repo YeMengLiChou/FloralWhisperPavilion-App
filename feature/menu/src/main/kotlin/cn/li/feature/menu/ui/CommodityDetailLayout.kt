@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,13 +50,17 @@ import cn.li.model.CommodityItemDetailVO
 import coil.compose.SubcomposeAsyncImage
 import kotlinx.coroutines.launch
 
+/**
+ * 商品详细信息底部弹窗
+ *
+ * */
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun CommodityDetailLayout(
     uiState: CommodityDetailUiState,
     onDismiss: () -> Unit,
     onDismissRequest: () -> Unit,
-    onAddCartClick: (itemId: Long, count: Int, isSetmeal: Boolean) -> Unit,
+    onAddCartClick: suspend (itemId: Long, count: Int) -> Boolean,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
@@ -97,6 +102,9 @@ fun CommodityDetailLayout(
             }
         }
     }
+
+    val scope = rememberCoroutineScope()
+
     ModalBottomSheetLayout(
         modifier = modifier,
         sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
@@ -113,8 +121,12 @@ fun CommodityDetailLayout(
                                 .fillMaxHeight(0.8f)
                                 .fillMaxWidth(),
                             onAddCartClick = { addCount ->
-                                onAddCartClick(cachedData!!.id, addCount, true)
-                                onDismissRequest()
+                                scope.launch {
+                                    // 当只有返回 true 的时候才能关闭
+                                    if (onAddCartClick(cachedData!!.id, addCount)) {
+                                        onDismissRequest()
+                                    }
+                                }
                             }
                         )
                     }
@@ -150,6 +162,11 @@ fun CommodityDetailLayout(
 }
 
 
+/**
+ * 商店商品详细信息
+ * @param item 商品信息
+ * @param onAddCartClick 添加购物车回调
+ * */
 @Composable
 private fun CommodityDetail(
     item: CommodityItemDetailVO,
@@ -178,7 +195,7 @@ private fun CommodityDetail(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.3f),
-                contentScale = ContentScale.Inside
+                contentScale = ContentScale.Crop
             )
             Text(
                 text = item.name,
@@ -191,7 +208,6 @@ private fun CommodityDetail(
                 color = Color.Gray,
                 modifier = Modifier.padding(top = 8.dp, start = 12.dp, end = 12.dp)
             )
-
         }
 
         var addCartCount by remember(key1 = item.id) {
@@ -222,7 +238,14 @@ private fun CommodityDetail(
     }
 }
 
-
+/**
+ * 底部的加入购物车+选择数量
+ * @param price 显示的单价
+ * @param count 显示的数量
+ * @param onAddCartClick 点击加入购物车
+ * @param onIncreaseCount 增加数量
+ * @param onDecreaseCount 减少数量
+ * */
 @Composable
 fun BottomAddCart(
     price: Double,

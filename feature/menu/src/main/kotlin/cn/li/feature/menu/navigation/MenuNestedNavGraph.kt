@@ -20,6 +20,7 @@ object MenuNestedNavGraph : NavigationRoute {
 
     fun NavGraphBuilder.menuNestedNavGraph(
         navController: NavHostController,
+        onChooseAddressNavigate: () -> Unit
     ) {
         navigation(
             startDestination = MenuNavigation.route,
@@ -28,7 +29,11 @@ object MenuNestedNavGraph : NavigationRoute {
             deepLinks = this@MenuNestedNavGraph.deepLinks
         ) {
 
-            menuScreen(navController = navController, parentRoute = this@MenuNestedNavGraph.route)
+            menuScreen(
+                navController = navController,
+                parentRoute = this@MenuNestedNavGraph.route,
+                onChooseAddressNavigate = onChooseAddressNavigate
+            )
             chooseShopScreen(
                 navController = navController,
                 parentRoute = this@MenuNestedNavGraph.route

@@ -1,5 +1,6 @@
 package cn.li.feature.menu.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -12,18 +13,19 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -34,6 +36,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,7 +52,6 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
@@ -59,6 +62,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.layoutId
+import cn.li.core.ui.base.NumberAdjustBox
 import cn.li.core.ui.base.SwitchTabs
 import cn.li.core.ui.base.TabsScrollableLazyColumn
 import cn.li.core.ui.base.TextLabel
@@ -68,11 +72,12 @@ import cn.li.core.ui.loading.LoadingBottomSheetLayout
 import cn.li.core.ui.start
 import cn.li.core.ui.top
 import cn.li.feature.menu.ui.cart.FloatingCartLayout
-import cn.li.model.CommodityItemVO
-import cn.li.model.ShopCommodityItemVO
 import cn.li.network.dto.user.ShopItemDTO
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.max
 
 
@@ -93,9 +98,14 @@ fun MenuScreen(
     commodityDetailUiState: CommodityDetailUiState,
     onSettlementNavigate: () -> Unit,
     onChooseShopNavigate: () -> Unit,
-    onAddCommodityToCart: (itemId: Long, count: Int) -> Unit,
+    onChooseAddressNavigate: () -> Unit,
+    onAddCommodityToCart: suspend (itemId: Long, count: Int) -> Boolean,
     onCommodityDetailShow: (id: Long) -> Unit,
     onCommodityDetailDismiss: () -> Unit,
+    onCartCommodityCountIncrease: (itemId: Long, number: Int) -> Unit,
+    onCartCommodityCountDecrease: (itemId: Long, number: Int) -> Unit,
+    onCartCommodityDeleteRequest: (itemId: Long) -> Unit,
+    onCartClearRequest: () -> Unit,
     onSearchNavigation: () -> Unit, // 搜索优先级最低
     modifier: Modifier = Modifier
 ) {
@@ -118,8 +128,14 @@ fun MenuScreen(
     }
 
     // 订单的总金额
-    val orderAmount by remember(key1 = cachedData) {
-        derivedStateOf { cachedData?.cartInfo?.sumOf { it.amount } ?: 0.0 }
+    val orderAmount by remember(key1 = cachedData?.cartInfo) {
+        derivedStateOf { cachedData?.cartInfo?.sumOf { it.amount * it.number } ?: 0.0 }
+    }
+
+    val orderCount by remember(key1 = cachedData?.cartInfo) {
+        derivedStateOf {
+            cachedData?.cartInfo?.sumOf { it.number } ?: 0
+        }
     }
 
     // 侧边栏
@@ -127,9 +143,17 @@ fun MenuScreen(
         cachedData?.goods?.map { it.categoryName } ?: emptyList()
     }
 
-//    val contentItems = remember(key1 = cachedData?.goods) {
-//        cachedData?.goods
-//    }
+    val scope = rememberCoroutineScope()
+
+    // 购物车更改数量的防抖状态：通过新起一个协程+delay来控制防抖
+    val changeCartItemsState = remember(key1 = cachedData?.cartInfo) {
+        // item -> <last-time, number>
+        mutableMapOf<Long, Job>()
+    }
+
+    var toast by remember {
+        mutableStateOf<Toast?>(null)
+    }
 
     when (uiState) {
         MenuUiState.Loading -> {}
@@ -138,8 +162,11 @@ fun MenuScreen(
         }
 
         is MenuUiState.Failed -> {
-            // TODO 错误提示
+            toast?.cancel()
+            toast = Toast.makeText(LocalContext.current, uiState.error, Toast.LENGTH_LONG)
+                .apply { show() }
         }
+
         else -> {}
     }
 
@@ -156,17 +183,53 @@ fun MenuScreen(
                 modifier = Modifier.fillMaxSize(),
                 onDismiss = onCommodityDetailDismiss,
                 onDismissRequest = onCommodityDetailDismiss,
-                onAddCartClick = { id, addCount, isSetmeal ->
-                    onAddCommodityToCart(id, addCount)
-                }
-            ) { // 购物车
+                onAddCartClick = onAddCommodityToCart
+            ) {
+                // 购物车
                 FloatingCartLayout(
                     showCart = orderEnabled,
-                    badgeCount = cachedData?.cartInfo?.size ?: 0,
+                    badgeCount = orderCount,
                     amount = orderAmount.toString(),
                     onSettlement = onSettlementNavigate,
                     sheetContent = {
+                        // 购物车的内容
+                        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                            cachedData?.cartInfo?.forEach { it ->
+                                item(key = it.id) {
+                                    CartCommodityItem(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = 12.dp, end = 12.dp, top = 12.dp),
+                                        imageUrl = it.image,
+                                        name = it.name,
+                                        price = it.amount.toString(),
+                                        cartCount = it.number,
+                                        onIncreaseCount = { number ->
+                                            changeCartItemsState[it.id]?.cancel()
+                                            changeCartItemsState[it.id] = scope.launch {
+                                                delay(300)
+                                                onCartCommodityCountIncrease(it.id, number)
+                                                changeCartItemsState.remove(it.id)
+                                            }
+                                        },
+                                        onDecreaseCount = { number ->
+                                            changeCartItemsState[it.id]?.cancel()
+                                            changeCartItemsState[it.id] = scope.launch {
+                                                delay(300)
+                                                onCartCommodityCountDecrease(it.id, number)
+                                                changeCartItemsState.remove(it.id)
+                                            }
+                                        },
+                                        onDeleteRequest = {
+                                            changeCartItemsState.values.forEach { job -> job.cancel() }
+                                            onCartCommodityDeleteRequest(it.id)
+                                        }
+                                    )
+                                }
+                            }
+                        }
                     },
+                    onClearCart = onCartClearRequest,
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Column(modifier = Modifier.fillMaxSize()) {
@@ -174,10 +237,11 @@ fun MenuScreen(
                             modifier = Modifier
                                 .height(IntrinsicSize.Min),
                             onSetTakeout = {
-
+                                // 选择自取
                             },
                             onSetSelfTake = {
-
+                                // 选择店铺
+                                onChooseAddressNavigate()
                             },
                             onSearchClick = onSearchNavigation,
                             onShopClick = onChooseShopNavigate,
@@ -205,8 +269,7 @@ fun MenuScreen(
                                             .padding(start = 16.dp)
                                             .wrapContentSize(Alignment.CenterStart),
                                         fontWeight = FontWeight.W600,
-
-                                        )
+                                    )
                                 },
                                 items = { index, _ ->
                                     cachedData?.goods?.get(index)?.let { goods ->
@@ -220,7 +283,6 @@ fun MenuScreen(
                                                     description = item.description,
                                                     onAddClick = {
                                                         onCommodityDetailShow(item.id)
-
                                                     },
                                                     modifier = Modifier
                                                         .padding(
@@ -244,16 +306,6 @@ fun MenuScreen(
     }
 }
 
-
-@Composable
-private fun EmptyCart(
-    modifier: Modifier = Modifier
-) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Text(text = "暂无心仪的商品~快去选购吧~")
-    }
-}
-
 /**
  * 顶部栏
  * @param onSetTakeout 切换到外卖
@@ -272,7 +324,7 @@ private fun MenuTopBar(
     modifier: Modifier = Modifier,
     constraintSet: ConstraintSet = MenuScreenDefaults.topBarConstraintSet()
 ) {
-    var selectedIndex by remember {
+    var selectedIndex by rememberSaveable {
         mutableIntStateOf(0)
     }
     val tabs = listOf("自取", "外卖")
@@ -301,8 +353,8 @@ private fun MenuTopBar(
                     .layoutId("tabs"),
                 onTabsClick = {
                     selectedIndex = it
-                    if (it == 0) onSetTakeout()
-                    else onSetSelfTake()
+                    if (it == 0) onSetSelfTake()
+                    else onSetTakeout()
                 }
             )
             Row(
@@ -347,7 +399,6 @@ private fun MenuTopBar(
                 )
             }
             TextLabel(text = shopStatus, modifier = Modifier.layoutId("status"))
-
         }
     }
 }
@@ -380,15 +431,13 @@ object MenuScreenDefaults {
         }
     }
 
-    @Composable
-    fun commodityItemConstraintSet() = ConstraintSet {
+    val commodityItemConstraintSet = ConstraintSet {
         val (imageRef, nameRef, descRef, priceRef, addRef) = createRefsFor(
             "image", "name", "desc", "price", "add"
         )
         constrain(imageRef) {
             top()
             start()
-
         }
 
         constrain(nameRef) {
@@ -420,8 +469,46 @@ object MenuScreenDefaults {
         }
     }
 
+    val cartCommodityItemConstraintSet = ConstraintSet {
+        val (imageRef, nameRef, priceRef, numberRef) = createRefsFor(
+            "image", "name", "price", "number"
+        )
+
+        constrain(imageRef) {
+            top()
+            start()
+            bottom()
+            height = Dimension.fillToConstraints
+        }
+
+        constrain(nameRef) {
+            start.linkTo(imageRef.end, 8.dp)
+            top()
+        }
+        constrain(priceRef) {
+            start.linkTo(imageRef.end, 8.dp)
+            top.linkTo(nameRef.bottom, 4.dp)
+            bottom()
+        }
+
+        constrain(numberRef) {
+            end()
+            bottom()
+        }
+
+    }
+
 }
 
+/**
+ * 商品列表的子项
+ * @param imageUrl 图片地址
+ * @param name 商品名称
+ * @param price 商品价格
+ * @param cartCount 选中的数量
+ * @param description 商品描述
+ * @param onAddClick 点击添加
+ * */
 @Composable
 private fun CommodityItem(
     imageUrl: String,
@@ -432,7 +519,7 @@ private fun CommodityItem(
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
     textMeasurer: TextMeasurer = rememberTextMeasurer(),
-    constraintSet: ConstraintSet = MenuScreenDefaults.commodityItemConstraintSet()
+    constraintSet: ConstraintSet = MenuScreenDefaults.commodityItemConstraintSet
 ) {
     ConstraintLayout(
         modifier = modifier
@@ -525,7 +612,6 @@ private fun CommodityItem(
 }
 
 /**
- *
  * 绘制数字角标
  * */
 fun Modifier.drawTextBadge(
@@ -552,6 +638,65 @@ fun Modifier.drawTextBadge(
                 size.width - textLayoutResult.size.width / 2,
                 -textLayoutResult.size.height / 2f
             )
+        )
+    }
+}
+
+/**
+ * 购物车的商品子项
+ * @param imageUrl 图片地址
+ * @param name 商品名称
+ * @param price 商品价格
+ * @param cartCount 选中的数量
+ * @param onDeleteRequest 删除请求
+ * @param onIncreaseCount 增加数量
+ * @param onDecreaseCount 减少数量
+ * @param constraintSet 约束集
+ * */
+@Composable
+fun CartCommodityItem(
+    imageUrl: String,
+    name: String,
+    price: String,
+    cartCount: Int,
+    onIncreaseCount: (Int) -> Unit,
+    onDecreaseCount: (Int) -> Unit,
+    onDeleteRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    constraintSet: ConstraintSet = MenuScreenDefaults.cartCommodityItemConstraintSet,
+) {
+    ConstraintLayout(
+        modifier = modifier.heightIn(min = 64.dp),
+        constraintSet = constraintSet
+    ) {
+        SubcomposeAsyncImage(
+            model = imageUrl,
+            contentDescription = null,
+            modifier = Modifier
+                .layoutId("image")
+                .aspectRatio(1f, matchHeightConstraintsFirst = true)
+                .clip(RoundedCornerShape(4.dp)),
+            contentScale = ContentScale.Crop,
+        )
+        Text(
+            text = name,
+            modifier = Modifier.layoutId("name"),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.W500
+        )
+        Text(text = "¥$price", modifier = Modifier.layoutId("price"), fontSize = 16.sp)
+        NumberAdjustBox(
+            modifier = Modifier.layoutId("number"),
+            value = cartCount,
+            onIncrease = onIncreaseCount,
+            onDecrease = {
+                if (it == 0) {
+                    onDeleteRequest()
+                }
+                onDecreaseCount(it)
+            },
+            limitMin = 0,
+            limitMax = 1000,
         )
     }
 }

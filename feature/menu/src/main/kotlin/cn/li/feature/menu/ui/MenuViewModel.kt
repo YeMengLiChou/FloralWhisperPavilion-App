@@ -10,13 +10,16 @@ import cn.li.datastore.FwpCachedDataStore
 import cn.li.model.CommodityItemDetailVO
 import cn.li.model.CommodityItemVO
 import cn.li.model.ShopCommodityItemVO
+import cn.li.network.dto.ApiResult
 import cn.li.network.dto.onError
 import cn.li.network.dto.onSuccess
+import cn.li.network.dto.user.ShopGoodsDTO
 import cn.li.network.dto.user.ShopItemDTO
 import cn.li.network.dto.user.ShoppingCartAddDTO
 import cn.li.network.dto.user.ShoppingCartDTO
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -40,11 +43,75 @@ class MenuViewModel @Inject constructor(
         const val TAG = "MenuViewModel"
     }
 
+    /**
+     * 主界面的状态
+     * */
     private val _menuUiState = MutableStateFlow<MenuUiState>(MenuUiState.Loading)
     val menuUiState = _menuUiState.asStateFlow()
 
 
+    /**
+     * 抽离出来，用于挂起获取数据， 请求商店商品列表+购物车数据
+     * */
+    private suspend fun suspendGetShopGoodsWithCartInfo(shopId: Long): Pair<ApiResult<List<ShopGoodsDTO>>, ApiResult<List<ShoppingCartDTO>>> {
+        val goodsList =
+            viewModelScope.async { shopRepository.getCommodityItemList(shopId = shopId) }.await()
+        val cartInfo =
+            viewModelScope.async { cartRepository.getShoppingCartList(shopId = shopId) }.await()
+        return Pair(goodsList, cartInfo)
+    }
+
+    /**
+     * 将商品列表中的数据加上购物车中的数据
+     * */
+    private fun transformToCommodityItemVO(
+        goodsList: List<ShopGoodsDTO>,
+        cartInfo: List<ShoppingCartDTO>
+    ): List<ShopCommodityItemVO> {
+        // 处理数据
+        return goodsList.map { categoryItem ->
+            // 将这部分转成 VO
+            ShopCommodityItemVO(
+                categoryId = categoryItem.categoryId,
+                categoryName = categoryItem.categoryName,
+                categoryStatus = categoryItem.categoryStatus,
+                categoryType = categoryItem.categoryType,
+                sort = categoryItem.sort,
+                // 关联起购物车数据
+                items = categoryItem.items.map { commodityItem ->
+                    val cartItem = cartInfo.firstOrNull { cartItem ->
+                        cartItem.dishId == commodityItem.id
+                    }
+                    CommodityItemVO(
+                        id = commodityItem.id,
+                        name = commodityItem.name,
+                        imageUrl = commodityItem.image,
+                        description = commodityItem.description,
+                        price = commodityItem.price,
+                        cartCount = cartItem?.number ?: 0,
+                        cartItemId = cartItem?.id,
+                        status = commodityItem.status,
+                        isSetmeal = commodityItem.isSetmeal
+                    )
+                }
+            )
+        }
+            .sortedWith(Comparator.comparingInt { a -> a.sort })
+    }
+
+
+    /**
+     * 缓存的商品列表
+     * */
+    private var cachedShopCommodityItemList: List<ShopGoodsDTO> = emptyList()
+
+    private var cachedCartCommodityItemList: List<ShoppingCartDTO> = emptyList()
+
     private var getShopGoodsWithCartInfoJob: Job? = null
+
+    /**
+     * 请求商店商品列表+购物车数据
+     * */
     fun getShopGoodsWithCartInfo() {
         _menuUiState.value = MenuUiState.Loading
         getShopGoodsWithCartInfoJob?.cancel()
@@ -55,49 +122,22 @@ class MenuViewModel @Inject constructor(
         getShopGoodsWithCartInfoJob = viewModelScope.launch(Dispatchers.IO) {
             val shopId = checkNotNull(selectedShopInfo.value?.id)
             runCatching {
-                val goodsList =
-                    async { shopRepository.getCommodityItemList(shopId = shopId) }.await()
-                val cartInfo = async { cartRepository.getShoppingCartList(shopId = shopId) }.await()
-                Pair(goodsList, cartInfo)
+                suspendGetShopGoodsWithCartInfo(shopId)
             }.onSuccess {
                 val (goodsList, cartInfo) = it
                 if (goodsList.code == 200 && cartInfo.code == 200) {
-                    // 处理数据
-                    val goods =
-                        checkNotNull(goodsList.data)
-                            .map { categoryItem ->
-                                // 将这部分转成 VO
-                                ShopCommodityItemVO(
-                                    categoryId = categoryItem.categoryId,
-                                    categoryName = categoryItem.categoryName,
-                                    categoryStatus = categoryItem.categoryStatus,
-                                    categoryType = categoryItem.categoryType,
-                                    sort = categoryItem.sort,
-                                    // 关联起购物车数据
-                                    items = categoryItem.items.map { commodityItem ->
-                                        val cartItem = cartInfo.data?.firstOrNull { cartItem ->
-                                            cartItem.dishId == commodityItem.id
-                                        }
-                                        CommodityItemVO(
-                                            id = commodityItem.id,
-                                            name = commodityItem.name,
-                                            imageUrl = commodityItem.image,
-                                            description = commodityItem.description,
-                                            price = commodityItem.price,
-                                            cartCount = cartItem?.number ?: 0,
-                                            cartItemId = cartItem?.id,
-                                            status = commodityItem.status,
-                                            isSetmeal = commodityItem.isSetmeal
-                                        )
-                                    }
-                                )
-                            }
-                            .sortedWith(Comparator.comparingInt { a -> a.sort })
+
+                    // 缓存数据
+                    cachedShopCommodityItemList = goodsList.data!!
+                    cachedCartCommodityItemList = cartInfo.data!!
 
                     _menuUiState.value = MenuUiState.Success(
                         shopInfo = _selectedShopInfo.value!!,
-                        goods = goods,
-                        cartInfo = checkNotNull(cartInfo.data)
+                        goods = transformToCommodityItemVO(
+                            goodsList = goodsList.data!!,
+                            cartInfo = cartInfo.data!!
+                        ),
+                        cartInfo = cartInfo.data!!
                     )
                 } else {
                     _menuUiState.value = MenuUiState.Failed(
@@ -111,6 +151,11 @@ class MenuViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * 选择过的配送地址id
+     * */
+    var selectedAddressId: Long? = null
 
 
     private val _selectedShopInfo = MutableStateFlow<ShopItemDTO?>(null)
@@ -215,12 +260,20 @@ class MenuViewModel @Inject constructor(
 
     val commodityDetailUIState = _commodityDetailUiState.asStateFlow()
 
+    /**
+     * 关闭商品详细界面
+     * */
     fun hideCommodityDetail() {
         _commodityDetailUiState.value = CommodityDetailUiState.Hide
     }
 
+
     private var getCommodityDetailJob: Job? = null
 
+    /***
+     * 获取商品详细信息
+     * @param id 商品id
+     * */
     fun getCommodityDetail(id: Long) {
         _commodityDetailUiState.value = CommodityDetailUiState.Loading
         getCommodityDetailJob?.cancel()
@@ -255,26 +308,135 @@ class MenuViewModel @Inject constructor(
     }
 
 
-    private var addCommodityToCartJob: Job? = null
+    private var addCommodityToCartDeferred: Deferred<Result<*>>? = null
 
-    fun addCommodityToCart(commodityId: Long, number: Int, isSetmeal: Boolean) {
-        addCommodityToCartJob?.cancel()
-
-        addCommodityToCartJob = viewModelScope.launch(Dispatchers.IO) {
+    /**
+     * 添加商品到购物车
+     * */
+    suspend fun addCommodityToCart(commodityId: Long, number: Int): Boolean {
+        addCommodityToCartDeferred?.cancel()
+        // 是否成功添加到购物车
+        var addResult = false
+        addCommodityToCartDeferred = viewModelScope.async(Dispatchers.IO) {
             runCatching {
                 cartRepository.addCommodityToShoppingCart(
                     dto = ShoppingCartAddDTO(
-                        dishId = if (isSetmeal) null else commodityId,
-                        setmealId = if (isSetmeal) commodityId else null,
+                        dishId = commodityId,
+                        setmealId = null,
                         number = number,
                         shopId = selectedShopInfo.value!!.id
                     )
                 )
             }.onSuccess { apiResult ->
+                apiResult.onSuccess { _ ->
+                    // 同步购物车信息，因为是新增，需要知道对应的id
+                    launch {
+                        val cartInfo =
+                            cartRepository.getShoppingCartList(shopId = selectedShopInfo.value!!.id).data!!
+
+                        cachedCartCommodityItemList = cartInfo
+
+                        _menuUiState.value = MenuUiState.Success(
+                            shopInfo = _selectedShopInfo.value!!,
+                            goods = transformToCommodityItemVO(
+                                goodsList = cachedShopCommodityItemList,
+                                cartInfo = cartInfo,
+                            ),
+                            cartInfo = cartInfo
+                        )
+                    }
+
+                    addResult = true
+                }?.onError {
+                    _commodityDetailUiState.value = CommodityDetailUiState.Failed(it)
+                }
+            }.onFailure {
+                if (it is CancellationException) return@onFailure
+                _commodityDetailUiState.value =
+                    CommodityDetailUiState.Failed(it.message ?: "添加失败！请重试！")
             }
+        }
+        addCommodityToCartDeferred?.await()
+        return addResult
+    }
+
+
+    private var changeCartItemJob: Job? = null
+
+    /**
+     * 改变购物车中商品的数量
+     * */
+    fun changeCartItemCount(itemId: Long, count: Int) {
+        changeCartItemJob?.cancel()
+
+        changeCartItemJob = viewModelScope.launch {
+            runCatching {
+                cartRepository.updateShoppingCartCommodityCount(
+                    ids = listOf(itemId),
+                    counts = listOf(count)
+                )
+            }.onSuccess {
+                // 因为是修改数量，不会改变id，本地修改即可，无需同步
+
+                // count = 0 将其删除
+                cachedCartCommodityItemList = if (count == 0) {
+                    cachedCartCommodityItemList.filter { it.id != itemId }
+                } else {
+                    cachedCartCommodityItemList.map {
+                        if (it.id == itemId) {
+                            it.copy(number = count)
+                        } else {
+                            it
+                        }
+                    }
+                }
+
+                _menuUiState.value = MenuUiState.Success(
+                    shopInfo = _selectedShopInfo.value!!,
+                    goods = transformToCommodityItemVO(
+                        goodsList = cachedShopCommodityItemList,
+                        cartInfo = cachedCartCommodityItemList,
+                    ),
+                    cartInfo = cachedCartCommodityItemList
+                )
+
+                // 空了就得不显示详情了
+                if (cachedCartCommodityItemList.isEmpty()) {
+                    hideCommodityDetail()
+                }
+            }
+                .onFailure {
+                    // TODO 错误处理
+                }
         }
     }
 
+    private var clearCartItemJob: Job? = null
+
+    /**
+     * 删除购物车的某个商品
+     * */
+    fun clearCart() {
+        clearCartItemJob?.cancel()
+
+        clearCartItemJob = viewModelScope.launch {
+            runCatching {
+                cartRepository.clearShoppingCart(shopId = selectedShopInfo.value!!.id)
+            }.onSuccess {
+                cachedCartCommodityItemList = emptyList()
+                _menuUiState.value = MenuUiState.Success(
+                    shopInfo = _selectedShopInfo.value!!,
+                    goods = transformToCommodityItemVO(
+                        goodsList = cachedShopCommodityItemList,
+                        cartInfo = cachedCartCommodityItemList,
+                    ),
+                    cartInfo = cachedCartCommodityItemList
+                )
+            }.onFailure {
+                // TODO 错误处理
+            }
+        }
+    }
 
     override fun onCleared() {
         super.onCleared()

@@ -19,6 +19,8 @@ import cn.li.feature.login.navigation.RegisterNavigationRoute.registerScreen
 import cn.li.feature.menu.navigation.MenuNavigation.menuScreen
 import cn.li.feature.menu.navigation.MenuNestedNavGraph.menuNestedNavGraph
 import cn.li.feature.mine.navigation.MineNestedNavRoute.nestedMineNavGraph
+import cn.li.feature.mine.navigation.UserAddressAddNavigation.navigateToAddAddress
+import cn.li.feature.mine.navigation.UserAddressManageNavigation.navigateToAddressManage
 import cn.li.feature.shop.navigation.shopScreen
 import cn.li.feature.userorder.navigation.userOrderScreen
 
@@ -63,7 +65,14 @@ fun FwpNavigationHost(
             )
         })
 
-        menuNestedNavGraph(navController)
+        menuNestedNavGraph(navController, onChooseAddressNavigate = {
+            navController.navigateToAddressManage(
+                selectedKey = "selected",
+                options = navOptions {
+                    launchSingleTop = true
+                }
+            )
+        })
 
         userOrderScreen()
         employeeOrderScreen()

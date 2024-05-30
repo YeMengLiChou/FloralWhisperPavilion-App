@@ -39,6 +39,14 @@ class RetrofitUserOrderDataSource @Inject constructor(
     override suspend fun submitOrder(dto: OrderSubmitDTO): ApiResult<OrderSubmitResultDTO> {
         return api.submitOrder(dto)
     }
+
+    override suspend fun fetchOrdersList(
+        status: Int,
+        pageNo: Int,
+        pageSize: Int
+    ): ApiResult<ApiPagination<OrderDetailDTO>> {
+        return api.fetchOrdersList(status, pageNo, pageSize)
+    }
 }
 
 
@@ -62,9 +70,17 @@ class UserOrderPagingSource @Inject constructor(
         return try {
             val currentPage = params.key ?: 1
             val response = if (completedOrder) {
-                dataSource.getHistoryOrders(mapOf())
+                dataSource.fetchOrdersList(
+                    status = 1,
+                    pageNo = currentPage,
+                    pageSize = params.loadSize
+                )
             } else {
-                dataSource.getHistoryOrders(mapOf())
+                dataSource.fetchOrdersList(
+                    status = 1,
+                    pageNo = currentPage,
+                    pageSize = params.loadSize
+                )
             }
 
             val data = response.data

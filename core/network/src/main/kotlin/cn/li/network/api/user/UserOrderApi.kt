@@ -10,6 +10,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 import retrofit2.http.QueryMap
 
 /**
@@ -61,6 +62,13 @@ internal interface UserOrderApi {
      * */
     @POST("user/order/submit")
     suspend fun submitOrder(@Body dto: OrderSubmitDTO): ApiResult<OrderSubmitResultDTO>
+
+    @GET("user/order/is-finish")
+    suspend fun fetchOrdersList(
+        @Query("status") status: Int,
+        @Query("pageNo") pageNo: Int,
+        @Query("pageSize") pageSize: Int
+    ): ApiResult<ApiPagination<OrderDetailDTO>>
 }
 
 
@@ -74,4 +82,10 @@ interface UserOrderDataSource {
     suspend fun payOrder(): ApiResult<Nothing>
 
     suspend fun submitOrder(dto: OrderSubmitDTO): ApiResult<OrderSubmitResultDTO>
+
+    suspend fun fetchOrdersList(
+        status: Int,
+        pageNo: Int,
+        pageSize: Int
+    ): ApiResult<ApiPagination<OrderDetailDTO>>
 }

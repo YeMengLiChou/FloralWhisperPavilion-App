@@ -17,7 +17,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-
+/**
+ * 带有返回键的顶部栏，用于统一样式
+ * @param onBackClick 点击返回键的回调
+ * @param title 标题
+ * @param modifier
+ * */
 @Composable
 fun TopBarWithBack(
     onBackClick: () -> Unit,

@@ -71,7 +71,7 @@ data class ItemDetail(
     val shopName: String,
     val dishId: Long,
     val setmealId: Long,
-    val dishFlavor: String,
+    val dishFlavor: String?,
     val number: Int,
     val amount: Double
 )

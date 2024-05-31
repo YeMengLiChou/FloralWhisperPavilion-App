@@ -18,7 +18,7 @@ import cn.li.common.ext.cast
 import cn.li.data.util.NetworkMonitor
 import cn.li.feature.employee.order.navigation.navigateToEmployeeOrder
 import cn.li.feature.home.navigation.navigateToHome
-import cn.li.feature.menu.navigation.navigateToMenu
+import cn.li.feature.menu.navigation.MenuNavigation.navigateToMenu
 import cn.li.feature.mine.navigation.MineNestedNavRoute.navigateToMineGraph
 import cn.li.feature.shop.navigation.navigateToShop
 import cn.li.feature.userorder.navigation.UserOrderNavigation.navigateToUserOrder
@@ -139,7 +139,6 @@ class AppState(
             TopLevelDestination.EMPLOYEE_ORDER -> navController.navigateToEmployeeOrder(
                 topLevelNavOptions
             )
-
             TopLevelDestination.SHOP -> navController.navigateToShop(topLevelNavOptions)
         }
 

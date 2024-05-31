@@ -26,6 +26,12 @@ import kotlinx.coroutines.launch
 
 /**
  * 可刷新的Box容器
+ * @param refreshing 是否正在刷新
+ * @param onRefresh 触发刷新的回调
+ * @param enableRefresh 是否启用刷新
+ * @param contentPadding 内容边距
+ * @param userScrollEnabled 是否能够滑动
+ * @param content 内容
  * */
 @OptIn(ExperimentalMaterialApi::class)
 @Composable

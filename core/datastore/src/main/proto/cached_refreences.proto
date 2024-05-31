@@ -1,0 +1,12 @@
+syntax = "proto3";
+option java_package = "cn.li.datastore.proto";
+option java_multiple_files = true;
+
+// 用户数据实体
+message CachedPreferences {
+  // 上一次选择过的商店id
+  int64 last_chosen_shop_id = 1;
+
+  // 上一次选择过的地址id
+  int64 last_chosen_address_id = 2;
+}

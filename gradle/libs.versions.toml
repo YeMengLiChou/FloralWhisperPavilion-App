@@ -94,6 +94,7 @@ androidx-contraintLayout-compose = { group = "androidx.constraintlayout", name =
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 retrofit-core = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 
+
 # paging
 paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "pagingCompose" }
 paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "pagingCompose" }

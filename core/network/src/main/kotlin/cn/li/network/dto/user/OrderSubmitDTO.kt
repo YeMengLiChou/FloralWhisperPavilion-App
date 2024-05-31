@@ -34,5 +34,17 @@ data class OrderSubmitDTO(
     val deliveryStatus: Int,
     val packAmount: Double,
     val amount: Double
-)
+) {
+    companion object {
+        /**
+         * 自取
+         * */
+        const val DELIVERY_STATUS_SELF_PICKUP = 2
+
+        /**
+         * 立即送出
+         * */
+        const val DELIVERY_STATUS_DELIVERY = 1
+    }
+}
 

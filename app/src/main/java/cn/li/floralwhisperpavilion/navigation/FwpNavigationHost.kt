@@ -21,6 +21,9 @@ import cn.li.feature.mine.navigation.MineNestedNavRoute.nestedMineNavGraph
 import cn.li.feature.mine.navigation.UserAddressManageNavigation.navigateToAddressManage
 import cn.li.feature.shop.navigation.shopScreen
 import cn.li.feature.userorder.navigation.UserOrderNavigation.userOrderScreen
+import cn.li.feature.userorder.navigation.UserOrderSettlementNavigation
+import cn.li.feature.userorder.navigation.UserOrderSettlementNavigation.navigateToOrderSettlement
+import cn.li.feature.userorder.navigation.UserOrderSettlementNavigation.userOrderSettlementScreen
 
 private const val TAG = "FwpNavigationHost"
 
@@ -63,17 +66,29 @@ fun FwpNavigationHost(
         })
 
         userOrderScreen(navController)
-        menuNestedNavGraph(navController, onChooseAddressNavigate = {
-            navController.navigateToAddressManage(
-                selectedKey = "selected",
-                options = navOptions {
-                    launchSingleTop = true
-                }
-            )
-        })
+        menuNestedNavGraph(
+            navController = navController,
+            onChooseAddressNavigate = {
+                navController.navigateToAddressManage(
+                    selectedKey = "selected",
+                    options = navOptions {
+                        launchSingleTop = true
+                    }
+                )
+            }, onSettlementNavigate = { shopId: Long, addressId: Long? ->
+                navController.navigateToOrderSettlement(
+                    shopId = shopId,
+                    addressId = addressId ?: UserOrderSettlementNavigation.LONG_NULL,
+                    navOptions {
+                        launchSingleTop = true
+                    }
+                )
+            }
+        )
 
         employeeOrderScreen()
         shopScreen()
+        userOrderSettlementScreen(navController = navController)
 
         nestedMineNavGraph(navController)
 

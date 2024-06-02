@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import cn.li.common.ext.sumAmountOf
 import cn.li.data.repository.AddressRepository
 import cn.li.data.repository.ShopRepository
 import cn.li.data.repository.UserOrderRepository
@@ -107,18 +108,21 @@ class UserOrderViewModel
                 val shopInfoDeferred = async { shopRepository.getShopList() }
                 val addressInfo =
                     addressId?.let { async { addressRepository.getAddressBookById(id = it) } }
-                        ?.await()
-                val cartList = cartListDeferred.await()
+                        ?.await()?.data
+                val cartList = cartListDeferred.await().data
                 val shopInfo = shopInfoDeferred.await().data!!.first { it.id == shopId }
-
+                // 转换为 vo
                 return@runCatching UserOrderSettlementVo(
                     shopId = shopInfo.id,
                     shopName = shopInfo.name,
                     shopLocation = shopInfo.address,
                     deliveryStatus = if (addressId == null) UserOrderSettlementVo.DELIVERY_STATUS_SELF_PICKUP else UserOrderSettlementVo.DELIVERY_STATUS_DELIVERY,
-                    deliveryAddress = addressInfo?.data?.let { "${it.provinceName ?: ""}${it.cityName ?: ""}${it.districtName ?: ""}${it.detail ?: ""}" },
-                    orderAmount = cartList.data!!.sumOf { it.number * it.amount },
-                    cartDTO = cartList.data!!,
+                    userAddressId = addressId,
+                    userAddress = addressInfo?.let { "${it.provinceName ?: ""}${it.cityName ?: ""}${it.districtName ?: ""}${it.detail}" },
+                    userName = addressInfo?.consignee,
+                    userPhoneNumber = addressInfo?.phone,
+                    orderAmount = cartList!!.sumAmountOf { it.number * it.amount }.toString(),
+                    cartDTO = cartList,
                 )
             }
                 .onSuccess {
@@ -126,6 +130,9 @@ class UserOrderViewModel
                 }
                 .onFailure {
                     if (it is CancellationException) return@onFailure
+                    if (it is NoSuchElementException) {
+                        Log.e(TAG, "getOrderSettlementInfo: not find shopId: $shopId")
+                    }
                     Log.e(TAG, "getOrderSettlementInfo: ${it.message}", it)
                     _userOrderSettlementUiState.value =
                         UserOrderSettlementUiState.Failed(it.message ?: "网络错误，请重试！")
@@ -137,20 +144,26 @@ class UserOrderViewModel
 
     private var submitUserOrderJob: Job? = null
 
-    fun submitUserOrder() {
+    /**
+     * 提交订单
+     *
+     * */
+    fun submitUserOrder(
+        submitInfo: OrderSubmitDTO
+    ) {
+        _userOrderSettlementUiState.value = UserOrderSettlementUiState.Loading
         submitUserOrderJob?.cancel()
 
-        _userOrderSettlementUiState.value = UserOrderSettlementUiState.Loading
-
         submitUserOrderJob = viewModelScope.launch(Dispatchers.IO) {
-//            userOrderRepository.submitOrder(dto = OrderSubmitDTO(
-//                addressBookId = ,
-//                shopId = ,
-//                remark = ,
-//
-//
-//
-//            )
+            runCatching {
+                userOrderRepository.submitOrder(dto = submitInfo)
+            }.onSuccess {
+                _userOrderSettlementUiState.value = UserOrderSettlementUiState.OrderSubmitSuccess
+            }.onFailure {
+                if (it is CancellationException) return@onFailure
+                _userOrderSettlementUiState.value =
+                    UserOrderSettlementUiState.Failed(it.message ?: "网络错误，请重试！")
+            }
         }
     }
 
@@ -185,6 +198,8 @@ sealed interface UserOrderSettlementUiState {
     data object Loading : UserOrderSettlementUiState
 
     data class Success(val data: UserOrderSettlementVo) : UserOrderSettlementUiState
+
+    data object OrderSubmitSuccess : UserOrderSettlementUiState
 
     data class Failed(val msg: String) : UserOrderSettlementUiState
 }

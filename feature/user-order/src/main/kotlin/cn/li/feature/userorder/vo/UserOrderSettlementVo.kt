@@ -13,8 +13,11 @@ data class UserOrderSettlementVo(
     val shopName: String,
     val shopLocation: String,
     val deliveryStatus: Int,
-    val deliveryAddress: String?,
-    val orderAmount: Double,
+    val orderAmount: String,
+    val userAddressId: Long?,
+    val userAddress: String?,
+    val userName: String?,
+    val userPhoneNumber: String?,
     val cartDTO: List<ShoppingCartDTO>
 ) {
     companion object {

@@ -1,9 +1,7 @@
+@file:SuppressLint("UsingMaterialAndMaterial3Libraries")
 package cn.li.feature.menu.ui.cart
 
-//noinspection UsingMaterialAndMaterial3Libraries
-//noinspection UsingMaterialAndMaterial3Libraries
-//noinspection UsingMaterialAndMaterial3Libraries
-//noinspection UsingMaterialAndMaterial3Libraries
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -166,7 +164,7 @@ fun FloatingCartLayout(
 private fun FloatingDetails(
     badge: Int,
     amount: String,
-    onSettlement: () -> Unit,
+    onSettlement:() -> Unit,
     onDetail: () -> Unit,
     modifier: Modifier = Modifier,
     isExpanded: Boolean = false,

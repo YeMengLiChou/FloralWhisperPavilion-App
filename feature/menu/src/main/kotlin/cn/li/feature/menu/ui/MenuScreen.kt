@@ -96,7 +96,7 @@ import kotlin.math.max
 fun MenuScreen(
     uiState: MenuUiState,
     commodityDetailUiState: CommodityDetailUiState,
-    onSettlementNavigate: () -> Unit,
+    onSettlementNavigate: (shopId: Long) -> Unit,
     onChooseShopNavigate: () -> Unit,
     onChooseAddressNavigate: () -> Unit,
     onAddCommodityToCart: suspend (itemId: Long, count: Int) -> Boolean,
@@ -190,7 +190,7 @@ fun MenuScreen(
                     showCart = orderEnabled,
                     badgeCount = orderCount,
                     amount = orderAmount.toString(),
-                    onSettlement = onSettlementNavigate,
+                    onSettlement = { onSettlementNavigate(cachedData?.shopInfo?.id!!) },
                     sheetContent = {
                         // 购物车的内容
                         LazyColumn(modifier = Modifier.fillMaxWidth()) {

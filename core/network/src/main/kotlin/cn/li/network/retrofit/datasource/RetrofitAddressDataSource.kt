@@ -27,7 +27,7 @@ class RetrofitAddressDataSource @Inject constructor(
         return addressApi.updateAddress(dto)
     }
 
-    override suspend fun getAddressBookById(id: Long): ApiResult<AddressBookAddDTO> {
+    override suspend fun getAddressBookById(id: Long): ApiResult<AddressBookDTO> {
         return addressApi.getAddressBookById(id)
     }
 

@@ -27,13 +27,13 @@ data class OrderSubmitResultDTO(
  * @param amount 下单金额
  * */
 data class OrderSubmitDTO(
-    val addressBookId: Long,
+    val addressBookId: Long?,
     val shopId: Long,
     val remark: String?,
     val estimatedDeliveryTime: String?,
     val deliveryStatus: Int,
-    val packAmount: Double,
-    val amount: Double
+    val packAmount: String,
+    val amount: String
 ) {
     companion object {
         /**

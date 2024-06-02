@@ -12,7 +12,7 @@ interface AddressRepository {
 
     suspend fun updateAddress(dto: AddressBookUpdateDTO): ApiResult<Nothing>
 
-    suspend fun getAddressBookById(id: Long): ApiResult<AddressBookAddDTO>
+    suspend fun getAddressBookById(id: Long): ApiResult<AddressBookDTO>
 
     suspend fun deleteAddressBooksByIds(ids: List<Long>): ApiResult<Nothing>
 

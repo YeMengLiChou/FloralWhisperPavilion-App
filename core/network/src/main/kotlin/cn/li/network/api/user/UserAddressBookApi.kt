@@ -42,7 +42,7 @@ internal interface UserAddressBookApi {
      * see: [文档](http://8.134.200.196:8080/doc.html#/user/%E5%9C%B0%E5%9D%80%E7%B0%BF%E6%8E%A5%E5%8F%A3/getById)
      */
     @GET("user/addressBook/{id}")
-    suspend fun getAddressBookById(@Path("id") id: Long): ApiResult<AddressBookAddDTO>
+    suspend fun getAddressBookById(@Path("id") id: Long): ApiResult<AddressBookDTO>
 
     /**
      * 根据id批量删除地址
@@ -85,7 +85,7 @@ interface UserAddressBookDataSource {
 
     suspend fun updateAddress(dto: AddressBookUpdateDTO): ApiResult<Nothing>
 
-    suspend fun getAddressBookById(id: Long): ApiResult<AddressBookAddDTO>
+    suspend fun getAddressBookById(id: Long): ApiResult<AddressBookDTO>
 
     suspend fun deleteAddressBooksByIds(ids: List<Long>): ApiResult<Nothing>
 

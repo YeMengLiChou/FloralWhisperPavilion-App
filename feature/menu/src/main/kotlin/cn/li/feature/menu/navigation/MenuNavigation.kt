@@ -38,6 +38,7 @@ object MenuNavigation : NavigationRoute {
     fun NavGraphBuilder.menuScreen(
         navController: NavHostController,
         onChooseAddressNavigate: () -> Unit,
+        onSettlementNavigate: (shopId: Long, addressId: Long?) -> Unit,
         parentRoute: String,
     ) {
         composable(
@@ -61,8 +62,10 @@ object MenuNavigation : NavigationRoute {
                         navOptions = navOptions { launchSingleTop = true })
                 },
                 onChooseAddressNavigate = onChooseAddressNavigate,
+                onSettlementNavigate = onSettlementNavigate,
                 viewModel = viewModel,
-            )
+
+                )
         }
     }
 }
@@ -70,6 +73,7 @@ object MenuNavigation : NavigationRoute {
 
 @Composable
 fun MenuRoute(
+    onSettlementNavigate: (shopId: Long, addressId: Long?) -> Unit,
     onChooseShopNavigate: () -> Unit,
     onChooseAddressNavigate: () -> Unit,
     viewModel: MenuViewModel
@@ -95,16 +99,11 @@ fun MenuRoute(
         viewModel.getShopGoodsWithCartInfo()
     }
 
-    SideEffect {
-        Log.d("MenuRoute", "MenuRoute: $uiState")
-    }
-
-
     MenuScreen(
         uiState = uiState,
         commodityDetailUiState = commodityDetailUiState,
-        onSettlementNavigate = {
-            // TODO：下单界面
+        onSettlementNavigate = { shopId: Long ->
+            onSettlementNavigate(shopId, viewModel.selectedAddressId)
         },
         onSearchNavigation = {
 

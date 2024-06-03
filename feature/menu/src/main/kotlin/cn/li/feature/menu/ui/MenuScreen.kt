@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -62,6 +63,8 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.layoutId
+import cn.li.common.ext.sumAmountOf
+import cn.li.core.ui.base.LToast
 import cn.li.core.ui.base.NumberAdjustBox
 import cn.li.core.ui.base.SwitchTabs
 import cn.li.core.ui.base.TabsScrollableLazyColumn
@@ -128,11 +131,13 @@ fun MenuScreen(
     }
 
     // 订单的总金额
-    val orderAmount by remember(key1 = cachedData?.cartInfo) {
-        derivedStateOf { cachedData?.cartInfo?.sumOf { it.amount * it.number } ?: 0.0 }
+    val cartTotalAmount by remember(key1 = cachedData?.cartInfo) {
+        derivedStateOf {
+            cachedData?.cartInfo?.sumAmountOf { it.amount * it.number }?.toString() ?: "0.00"
+        }
     }
-
-    val orderCount by remember(key1 = cachedData?.cartInfo) {
+    // 购物车的总数量
+    val cartCommodityCount by remember(key1 = cachedData?.cartInfo) {
         derivedStateOf {
             cachedData?.cartInfo?.sumOf { it.number } ?: 0
         }
@@ -151,20 +156,16 @@ fun MenuScreen(
         mutableMapOf<Long, Job>()
     }
 
-    var toast by remember {
-        mutableStateOf<Toast?>(null)
-    }
 
     when (uiState) {
         MenuUiState.Loading -> {}
+
         is MenuUiState.Success -> {
             cachedData = uiState
         }
 
         is MenuUiState.Failed -> {
-            toast?.cancel()
-            toast = Toast.makeText(LocalContext.current, uiState.error, Toast.LENGTH_LONG)
-                .apply { show() }
+            LToast(uiState.error, Toast.LENGTH_LONG)
         }
 
         else -> {}
@@ -188,13 +189,17 @@ fun MenuScreen(
                 // 购物车
                 FloatingCartLayout(
                     showCart = orderEnabled,
-                    badgeCount = orderCount,
-                    amount = orderAmount.toString(),
+                    badgeCount = cartCommodityCount,
+                    amount = cartTotalAmount,
                     onSettlement = { onSettlementNavigate(cachedData?.shopInfo?.id!!) },
                     sheetContent = {
                         // 购物车的内容
-                        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                            cachedData?.cartInfo?.forEach { it ->
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 400.dp)
+                        ) {
+                            cachedData?.cartInfo?.forEach {
                                 item(key = it.id) {
                                     CartCommodityItem(
                                         modifier = Modifier
@@ -229,19 +234,21 @@ fun MenuScreen(
                             }
                         }
                     },
-                    onClearCart = onCartClearRequest,
+                    onClearCart = {
+                        onCartClearRequest()
+                    },
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Column(modifier = Modifier.fillMaxSize()) {
                         MenuTopBar(
                             modifier = Modifier
                                 .height(IntrinsicSize.Min),
-                            onSetTakeout = {
-                                // 选择自取
-                            },
-                            onSetSelfTake = {
+                            onSetDelivery = {
                                 // 选择店铺
                                 onChooseAddressNavigate()
+                            },
+                            onSetSelfTake = {
+                                // 选择自取
                             },
                             onSearchClick = onSearchNavigation,
                             onShopClick = onChooseShopNavigate,
@@ -308,7 +315,7 @@ fun MenuScreen(
 
 /**
  * 顶部栏
- * @param onSetTakeout 切换到外卖
+ * @param onSetDelivery 切换到外卖
  * @param onSetSelfTake 切换到自取
  * @param onSearchClick 点击搜索
  * @param onShopClick 点击商店
@@ -318,7 +325,7 @@ private fun MenuTopBar(
     shopName: String,
     shopStatus: String,
     onSetSelfTake: () -> Unit,
-    onSetTakeout: () -> Unit,
+    onSetDelivery: () -> Unit,
     onSearchClick: () -> Unit,
     onShopClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -344,7 +351,7 @@ private fun MenuTopBar(
                 tabs = tabs,
                 modifier = Modifier
                     .width(120.dp)
-                    .height(40.dp)
+                    .height(36.dp)
                     .border(
                         width = 0.5.dp,
                         color = Color(0xffe0e0e0),
@@ -354,17 +361,17 @@ private fun MenuTopBar(
                 onTabsClick = {
                     selectedIndex = it
                     if (it == 0) onSetSelfTake()
-                    else onSetTakeout()
+                    else onSetDelivery()
                 }
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .border(
-                        width = 0.5.dp,
-                        shape = RoundedCornerShape(50),
-                        color = Color(0xffe0e0e0)
-                    )
+//                    .border(
+//                        width = 0.5.dp,
+//                        shape = RoundedCornerShape(50),
+//                        color = Color(0xffe0e0e0)
+//                    )
                     .height(40.dp)
                     .padding(vertical = 6.dp, horizontal = 12.dp)
                     .layoutId("search")
@@ -372,15 +379,15 @@ private fun MenuTopBar(
                         detectTapGestures { onSearchClick() }
                     }
             ) {
-                Icon(imageVector = Icons.Outlined.Search, contentDescription = null)
-                Text(
-                    text = "搜索商品",
-                    color = Color(0xff101010),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentSize(Alignment.Center),
-                    textAlign = TextAlign.Center,
-                )
+//                Icon(imageVector = Icons.Outlined.Search, contentDescription = null)
+//                Text(
+//                    text = "搜索商品",
+//                    color = Color(0xff101010),
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .wrapContentSize(Alignment.Center),
+//                    textAlign = TextAlign.Center,
+//                )
             }
 
             Row(
@@ -398,7 +405,14 @@ private fun MenuTopBar(
                     modifier = Modifier.padding(2.dp)
                 )
             }
-            TextLabel(text = shopStatus, modifier = Modifier.layoutId("status"))
+            TextLabel(
+                text = shopStatus,
+                modifier = Modifier
+                    .layoutId("status")
+                    .padding(horizontal = 2.dp, vertical = 1.dp),
+                fontSize = 10.sp,
+                color = Color.Black
+            )
         }
     }
 }
@@ -463,7 +477,7 @@ object MenuScreenDefaults {
             verticalBias = 0.5f
         }
         constrain(addRef) {
-            end(8.dp)
+            end(16.dp)
             baseline.linkTo(priceRef.baseline)
             bottom.linkTo(priceRef.bottom)
         }
@@ -546,9 +560,9 @@ private fun CommodityItem(
             modifier = Modifier
                 .layoutId("image")
                 .size(100.dp, 100.dp)
+                .clip(RoundedCornerShape(8.dp))
                 .aspectRatio(1f),
-
-            )
+        )
 
         Text(
             text = name,
@@ -581,7 +595,7 @@ private fun CommodityItem(
                     text = if (cartCount > 100) "99+"
                     else cartCount.toString(),
                     style = TextStyle(
-                        fontSize = 8.sp,
+                        fontSize = 10.sp,
                         color = Color.White,
                         textAlign = TextAlign.Center,
                     )
@@ -621,8 +635,8 @@ fun Modifier.drawTextBadge(
 ) = this then Modifier.drawWithCache {
     // 半径大小
     val radius = max(
-        max(textLayoutResult.size.width, textLayoutResult.size.height).toFloat(),
-        size.width / 5f
+        max(textLayoutResult.size.width / 2, textLayoutResult.size.height / 2).toFloat(),
+        size.width / 3f
     )
     onDrawWithContent {
         drawContent()

@@ -60,7 +60,7 @@ internal interface UserOrderApi {
      *
      * See: [文档](http://8.134.200.196:8080/doc.html#/user/%E7%94%A8%E6%88%B7%E8%AE%A2%E5%8D%95%E7%9B%B8%E5%85%B3%E6%8E%A5%E5%8F%A3/submit)
      * */
-    @POST("user/order/submit")
+    @POST("user/order/sumbit")
     suspend fun submitOrder(@Body dto: OrderSubmitDTO): ApiResult<OrderSubmitResultDTO>
 
     @GET("user/order/is-finish")

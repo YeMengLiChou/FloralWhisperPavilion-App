@@ -5,6 +5,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -32,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -49,6 +51,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ChainStyle
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
@@ -158,7 +161,7 @@ fun UserSettlementOrderScreen(
         }
 
         // 提交成功
-        UserOrderSettlementUiState.OrderSubmitSuccess -> {
+        is UserOrderSettlementUiState.OrderSubmitSuccess -> {
             payingVisibility = true
         }
     }
@@ -174,8 +177,17 @@ fun UserSettlementOrderScreen(
             loading = loading,
             modifier = Modifier.fillMaxSize(),
             sheetContent = {
-                CircularProgressIndicator()
-                Text(text = "支付中...")
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 32.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "支付中...")
+                }
             }
         ) {
             ConstraintLayout(
@@ -183,28 +195,35 @@ fun UserSettlementOrderScreen(
                     .fillMaxSize()
                     .systemBarsPadding()
             ) {
-                val (toolbarRef, detailRef, bottomRef) = createRefs()
+                val (toolbarRef, detailRef, remarkRef, bottomRef) = createRefs()
 
                 // 顶部栏
                 TopBarWithBack(
                     onBackClick = onBackClick,
                     title = "订单详情",
-                    modifier = Modifier.constrainAs(toolbarRef) {
-                        top()
-                    },
+                    modifier = Modifier.constrainAs(toolbarRef) {},
                 )
+
+                val verticalChainRef = createVerticalChain(
+                    toolbarRef,
+                    detailRef,
+                    remarkRef,
+                    chainStyle = ChainStyle.Packed(0f)
+                )
+
+                constrain(verticalChainRef) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(bottomRef.top)
+                }
 
                 // 上部分的顶单详情
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .constrainAs(detailRef) {
-                            top.linkTo(toolbarRef.bottom)
-                            bottom.linkTo(bottomRef.top)
-                            verticalBias = 0f
-                            height = Dimension.fillToConstraints
                         }
                         .padding(horizontal = LocalHorizontalPadding.current)
+
                 ) {
                     if (data != null) {
                         val curModifier = Modifier
@@ -249,26 +268,35 @@ fun UserSettlementOrderScreen(
                                     horizontal = LocalHorizontalInnerPadding.current,
                                 )
                         )
-
-                        Spacer(modifier = Modifier.height(LocalVerticalPadding.current))
-
-                        UserOrderRemarks(
-                            orderRemarks = remark,
-                            onRemarkChange = { remark = it },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color.White)
-                                .padding(
-                                    vertical = LocalVerticalInnerPadding.current,
-                                    horizontal = LocalHorizontalInnerPadding.current,
-                                )
-                        )
-
                     } else {
                         // Place Holder
                     }
                 }
+
+                // 订单备注
+                Column(
+                    modifier = Modifier
+                        .padding(
+                            horizontal = LocalHorizontalPadding.current,
+                            vertical = LocalVerticalPadding.current
+                        )
+                        .constrainAs(remarkRef) {}
+                ) {
+//                    Spacer(modifier = Modifier.height(LocalVerticalPadding.current))
+                    UserOrderRemarks(
+                        orderRemarks = remark,
+                        onRemarkChange = { remark = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White)
+                            .padding(
+                                horizontal = LocalHorizontalInnerPadding.current,
+                                vertical = LocalVerticalInnerPadding.current,
+                            )
+                    )
+                }
+
                 // 底部的支付栏
                 BottomSettlement(
                     orderTotalAmount = data?.orderAmount ?: "0.00",
@@ -289,7 +317,6 @@ fun UserSettlementOrderScreen(
                     modifier = Modifier
                         .constrainAs(bottomRef) {
                             bottom()
-                            top.linkTo(detailRef.bottom)
                             height = Dimension.value(64.dp)
                             verticalBias = 1f
                         }

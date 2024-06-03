@@ -1,4 +1,5 @@
 @file:SuppressLint("UsingMaterialAndMaterial3Libraries")
+
 package cn.li.feature.menu.ui.cart
 
 import android.annotation.SuppressLint
@@ -7,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -18,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
@@ -81,7 +84,7 @@ fun FloatingCartLayout(
 ) {
 
     val sheetState: ModalBottomSheetState =
-        rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
+        rememberModalBottomSheetState(ModalBottomSheetValue.Hidden, skipHalfExpanded = true)
 
     val scope = rememberCoroutineScope()
 
@@ -89,47 +92,57 @@ fun FloatingCartLayout(
         // 购物车明细 BottomSheet
         ModalBottomSheetLayout(
             sheetContent = {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(color = Color(0xfff0f0f0))
-                        .height(IntrinsicSize.Min)
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                Column(modifier = Modifier
+                    .fillMaxWidth()
                 ) {
-                    Text(
-                        text = "已选商品",
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                    )
                     Row(
                         modifier = Modifier
-                            .fillMaxHeight()
-                            .pointerInput(onClearCart) {
-                                // 点击清除购物车
-                                detectTapGestures {
-                                    onClearCart()
-                                }
-                            },
+                            .fillMaxWidth()
+                            .background(color = Color(0xfff0f0f0))
+                            .height(IntrinsicSize.Min)
+                            .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Icon(
-                            imageVector = Icons.Rounded.DeleteOutline,
-                            contentDescription = null,
-                            tint = Color.Gray,
-                            modifier = Modifier.padding(4.dp)
+                        Text(
+                            text = "已选商品",
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
                         )
-                        Text(text = "清空购物车", color = Color.Gray)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .pointerInput(onClearCart) {
+                                    // 点击清除购物车
+                                    detectTapGestures {
+                                        onClearCart()
+                                        // 清空后关闭
+                                        scope.launch {
+                                            sheetState.hide()
+                                        }
+                                    }
+                                },
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.DeleteOutline,
+                                contentDescription = null,
+                                tint = Color.Gray,
+                                modifier = Modifier
+                                    .padding(4.dp)
+                                    .size(20.dp)
+                            )
+                            Text(text = "清空购物车", color = Color.Gray, fontSize = 14.sp)
+                        }
                     }
+                    // 自定义内容
+                    sheetContent()
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                    )
                 }
-                // 自定义内容
-                sheetContent()
-                Spacer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(80.dp)
-                )
             },
             sheetState = sheetState,
             sheetShape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
@@ -164,7 +177,7 @@ fun FloatingCartLayout(
 private fun FloatingDetails(
     badge: Int,
     amount: String,
-    onSettlement:() -> Unit,
+    onSettlement: () -> Unit,
     onDetail: () -> Unit,
     modifier: Modifier = Modifier,
     isExpanded: Boolean = false,

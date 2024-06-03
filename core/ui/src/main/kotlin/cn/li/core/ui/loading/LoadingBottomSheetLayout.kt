@@ -44,6 +44,7 @@ fun LoadingBottomSheetLayout(
     show: Boolean,
     loading: Boolean,
     modifier: Modifier = Modifier,
+    allowDismiss: Boolean  = false,
     loadingText: String = "加载中",
     sheetContent: @Composable () -> Unit = {},
     content: @Composable () -> Unit,
@@ -51,7 +52,7 @@ fun LoadingBottomSheetLayout(
     val state = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
         confirmValueChange = {
-            !loading // 非加载可以取消
+            allowDismiss // 非加载可以取消
         })
 
     LaunchedEffect(key1 = loading, key2 = show) {

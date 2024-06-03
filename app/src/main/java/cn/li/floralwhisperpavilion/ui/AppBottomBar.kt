@@ -6,18 +6,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -150,33 +144,5 @@ private object FwpNavigationDefaults {
 
     @Composable
     fun navigationIndicatorColor() = MaterialTheme.colorScheme.primaryContainer
-}
-
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun AppBottomBarPreview() {
-    var currentState by remember {
-        mutableStateOf(TopLevelDestination.HOME)
-    }
-    Scaffold(
-        bottomBar = {
-            AppBottomBar(
-                destinations = listOf(
-                    TopLevelDestination.HOME,
-                    TopLevelDestination.MENU,
-                    TopLevelDestination.USER_ORDER,
-                    TopLevelDestination.USER_MINE
-                ),
-                currentDestination = null,
-                onNavigateToDestination = {
-                    currentState = it
-                },
-                destinationsWithUnreadResources = setOf(TopLevelDestination.USER_ORDER)
-            )
-        }
-    ) {
-        it
-    }
 }
 

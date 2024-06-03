@@ -5,23 +5,32 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import androidx.paging.map
 import cn.li.common.ext.sumAmountOf
 import cn.li.data.repository.AddressRepository
 import cn.li.data.repository.ShopRepository
 import cn.li.data.repository.UserOrderRepository
+import cn.li.data.repository.UserRepository
 import cn.li.data.repository.UserShopCartRepository
+import cn.li.feature.userorder.vo.UserOrderItemVo
 import cn.li.feature.userorder.vo.UserOrderSettlementVo
+import cn.li.network.dto.onError
+import cn.li.network.dto.onSuccess
 import cn.li.network.dto.user.OrderDetailDTO
 import cn.li.network.dto.user.OrderSubmitDTO
+import cn.li.network.dto.user.OrderSubmitResultDTO
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,13 +41,14 @@ class UserOrderViewModel
     private val addressRepository: AddressRepository,
     private val shopRepository: ShopRepository,
     private val userOrderRepository: UserOrderRepository,
-    private val cartRepository: UserShopCartRepository
+    private val cartRepository: UserShopCartRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _userOrderUiState = MutableStateFlow<UserOrderUiState>(UserOrderUiState.Loading)
     val userOrderUiState = _userOrderUiState.asStateFlow()
 
-    private val _uncompletedOrder = MutableStateFlow<PagingData<OrderDetailDTO>>(PagingData.empty())
+    private val _uncompletedOrder = MutableStateFlow<PagingData<UserOrderItemVo>>(PagingData.empty())
     val uncompletedOrder = _uncompletedOrder.asStateFlow()
 
     private var getUnCompletedOrderJob: Job? = null
@@ -50,7 +60,7 @@ class UserOrderViewModel
         getUnCompletedOrderJob = viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 userOrderRepository.getUncompletedOrderPagingData()
-                    .collectLatest { _uncompletedOrder.value = it }
+//                    .collectLatest { _uncompletedOrder.value = it }
             }.onFailure {
                 if (it is CancellationException) return@onFailure
                 Log.d(TAG, "getUncompletedOrder-failed: $it")
@@ -59,19 +69,34 @@ class UserOrderViewModel
         }
     }
 
-    private val _completedOrder = MutableStateFlow<PagingData<OrderDetailDTO>>(PagingData.empty())
+    private val _completedOrder = MutableStateFlow<PagingData<UserOrderItemVo>>(PagingData.empty())
     val completedOrder = _completedOrder.asStateFlow()
 
     private var getCompletedOrderJob: Job? = null
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun getCompletedOrder() {
         _userOrderUiState.value = UserOrderUiState.Loading
         getCompletedOrderJob?.cancel()
 
         getCompletedOrderJob = viewModelScope.launch(Dispatchers.IO) {
             runCatching {
+                val shopInfoList = shopRepository.getShopList().data!!
                 userOrderRepository.getCompletedOrderPagingData()
-                    .collectLatest { _completedOrder.value = it }
+//                    .mapLatest { pagingData ->
+//                        pagingData.map {
+//                            val userInfo = userRepository.getUserInfo(it.userId)
+//                            return@map UserOrderItemVo(
+//                                orderId = it.id,
+//                                orderNumber = it.number,
+//                                orderTotalAmount = it.amount.toString(),
+//                                shopAddress = shopInfoList.first { shop -> shop.id = it.shopId }.address,
+//                                shopName = shopInfoList.first { shop -> shop.id = it.shopId }.name,
+//
+//                            )
+//                        }
+//                    }
+//                    .collectLatest { _completedOrder.value = it }
             }.onFailure {
                 if (it is CancellationException) return@onFailure
                 Log.d(TAG, "getCompletedOrder-failed: $it")
@@ -157,8 +182,12 @@ class UserOrderViewModel
         submitUserOrderJob = viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 userOrderRepository.submitOrder(dto = submitInfo)
-            }.onSuccess {
-                _userOrderSettlementUiState.value = UserOrderSettlementUiState.OrderSubmitSuccess
+            }.onSuccess {apiResult ->
+                apiResult.onSuccess {
+                    _userOrderSettlementUiState.value = UserOrderSettlementUiState.OrderSubmitSuccess(it!!)
+                }?.onError { msg ->
+                    _userOrderSettlementUiState.value = UserOrderSettlementUiState.Failed(msg.takeIf { it.isNotEmpty() } ?: "网络错误，请重试！")
+                }
             }.onFailure {
                 if (it is CancellationException) return@onFailure
                 _userOrderSettlementUiState.value =
@@ -199,7 +228,7 @@ sealed interface UserOrderSettlementUiState {
 
     data class Success(val data: UserOrderSettlementVo) : UserOrderSettlementUiState
 
-    data object OrderSubmitSuccess : UserOrderSettlementUiState
+    data class OrderSubmitSuccess(val order: OrderSubmitResultDTO) : UserOrderSettlementUiState
 
     data class Failed(val msg: String) : UserOrderSettlementUiState
 }

@@ -130,10 +130,12 @@ class AppState(
             // 恢复状态
             restoreState = true
         }
+
+
         // 如果已经在当前页面，就无需再次进入
         if (topLevelDestination.route == navController.currentDestination?.route) return
 
-        Log.d("AppState", "navigateToTopLevelDestination: $topLevelDestination")
+        Log.d("AppState", "${navController.currentDestination?.route} -> ${topLevelDestination.route}")
         when (topLevelDestination) {
             TopLevelDestination.HOME -> navController.navigateToHome(topLevelNavOptions)
             TopLevelDestination.MENU -> navController.navigateToMenu(topLevelNavOptions)

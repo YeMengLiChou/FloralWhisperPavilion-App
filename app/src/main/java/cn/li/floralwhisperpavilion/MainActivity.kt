@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
                 listOf(TopLevelDestination.EMPLOYEE_ORDER, TopLevelDestination.SHOP)
             } else {
                 listOf(
-                    TopLevelDestination.HOME,
+//                    TopLevelDestination.HOME,
                     TopLevelDestination.MENU,
                     TopLevelDestination.USER_ORDER,
                     TopLevelDestination.USER_MINE

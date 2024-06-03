@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronLeft
 import androidx.compose.material3.Icon
@@ -36,7 +37,7 @@ fun TopBarWithBack(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        TextButton(onClick = onBackClick) {
+        TextButton(onClick = onBackClick, shape = RoundedCornerShape(4.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {

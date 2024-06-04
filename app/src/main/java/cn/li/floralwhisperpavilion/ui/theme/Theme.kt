@@ -19,18 +19,19 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color.White,
-    secondary = Color(0xfff6f6f6),
-    tertiary = Pink40,
-            background = Color(0xfff6f6f6),
-    onSurface =  Color(0xfff6f6f6),
-    /* Other default colors to override
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    */
+    primary = Color(0xff415f91),
+    onPrimary = Color(0xffd6e3ff),
+    primaryContainer = Color(0xffd6e3ff),
+    onPrimaryContainer = Color(0xff001b3e),
+    secondary = Color(0xff565f71),
+    onSecondary = Color(0xffffffff),
+    secondaryContainer = Color(0xffdae2f9),
+    tertiary = Color(0xff705575),
+    tertiaryContainer = Color(0xfffad8fd),
+    surface = Color(0xfff9f9ff),
+    background = Color(0xfff6f6f6),
+    onSurface =  Color(0xff191c20),
+
 )
 
 @Composable
@@ -41,10 +42,10 @@ fun FloralWhisperPavilionTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
+//        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+//            val context = LocalContext.current
+//            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+//        }
 
         darkTheme -> DarkColorScheme
         else -> LightColorScheme

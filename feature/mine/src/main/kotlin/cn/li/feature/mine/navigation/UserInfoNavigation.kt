@@ -67,5 +67,9 @@ internal fun UserInfoRoute(
         onUpdateAvatar = viewModel::updateAvatar,
         onUpdateNickname = viewModel::updateNickname,
         onErrorMessage = viewModel::userMineError,
+        onLogoutClick = {
+            viewModel.logout()
+            onBackClick()
+        },
     )
 }

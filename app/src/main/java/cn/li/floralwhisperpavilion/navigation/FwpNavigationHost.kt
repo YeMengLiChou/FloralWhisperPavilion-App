@@ -3,6 +3,8 @@ package cn.li.floralwhisperpavilion.navigation
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocal
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
@@ -41,6 +43,14 @@ private fun logNavigationCurrentBackStack(navController: NavHostController) {
     }
     Log.d(TAG, msg.toString())
 }
+
+val LocalLoginNavigate = compositionLocalOf<NavHostController.() -> Unit> {
+
+    return@compositionLocalOf {
+        navigateToLogin(username = "", password = "", navOptions { launchSingleTop = true })
+    }
+}
+
 
 /**
  * 全局导航图
@@ -90,7 +100,11 @@ fun FwpNavigationHost(
         shopScreen()
         userOrderSettlementScreen(navController = navController)
 
-        nestedMineNavGraph(navController)
+        nestedMineNavGraph(navController, onLoginNavigate = {
+            navController.navigateToLogin(username = "", password = ""  , navOptions = navOptions {
+                launchSingleTop = true
+            })
+        })
 
         loginScreen(
             onBackClick = navController::popBackStack,

@@ -42,6 +42,7 @@ internal object MineNavigationRoute : NavigationRoute {
     @SuppressLint("UnrememberedGetBackStackEntry")
     fun NavGraphBuilder.mineScreen(
         navController: NavHostController,
+        onLoginNavigate: () -> Unit,
         parentRoute: String,
     ) {
         composable(
@@ -49,7 +50,7 @@ internal object MineNavigationRoute : NavigationRoute {
             arguments = this@MineNavigationRoute.arguments,
             deepLinks = this@MineNavigationRoute.deepLinks
         ) {
-            val backStackEntry = remember {
+            val backStackEntry = remember(it) {
                 navController.getBackStackEntry(parentRoute)
             }
             val viewModel: UserMineViewModel = hiltViewModel(backStackEntry)
@@ -70,6 +71,7 @@ internal object MineNavigationRoute : NavigationRoute {
                         })
                 },
                 onSettingsNavigation = {},
+                onLoginNavigate = onLoginNavigate,
                 viewModel = viewModel
             )
         }
@@ -79,6 +81,7 @@ internal object MineNavigationRoute : NavigationRoute {
 
 @Composable
 private fun MineRoute(
+    onLoginNavigate: () -> Unit,
     onPullRefresh: () -> Unit,
     onUserInfoNavigation: () -> Unit,
     onAddressManagementNavigation: () -> Unit,
@@ -105,6 +108,7 @@ private fun MineRoute(
         },
         onUserInfoNavigation = onUserInfoNavigation,
         onAddressManagementNavigation = onAddressManagementNavigation,
-        onSettingsNavigation = onSettingsNavigation
+        onSettingsNavigation = onSettingsNavigation,
+        onLoginNavigate = onLoginNavigate
     )
 }

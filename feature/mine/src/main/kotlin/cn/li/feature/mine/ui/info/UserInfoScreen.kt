@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Text
@@ -26,6 +27,8 @@ import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Female
 import androidx.compose.material.icons.outlined.Male
 import androidx.compose.material.icons.outlined.NoAccounts
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -55,6 +58,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.isDigitsOnly
+import cn.li.common.ext.toDateString
 import cn.li.core.ui.base.BottomSheetImagePicker
 import cn.li.core.ui.base.ClearableTextFiled
 import cn.li.core.ui.loading.LoadingBottomSheetLayout
@@ -66,7 +70,7 @@ import coil.compose.SubcomposeAsyncImage
 
 /**
  * ”用户信息“ 界面
- * @param userDataState 当前用户数据。不能去掉 [State]，因为 [UserPreferences] 可能是不稳定的
+ * @param userData 当前用户数据。不能去掉 [State]，因为 [UserPreferences] 可能是不稳定的
  * @param onBackClick 按下返回键时触发
  * */
 @Composable
@@ -79,6 +83,7 @@ internal fun UserInfoScreen(
     onUpdateAvatar: (Any) -> Unit,
     onUpdateNickname: (String) -> Unit,
     onErrorMessage: (String) -> Unit,
+    onLogoutClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val snackbarHostState = remember {
@@ -106,8 +111,6 @@ internal fun UserInfoScreen(
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = Color(0xfff0f0f0),
-        contentColor = Color.White,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // 底部显示
@@ -197,7 +200,7 @@ internal fun UserInfoScreen(
 
             LoadingBottomSheetLayout(
                 show = false,
-                loading = true,
+                loading = loading,
                 loadingText = "更新中"
             ) {
                 Column(modifier = Modifier.systemBarsPadding()) {
@@ -213,7 +216,8 @@ internal fun UserInfoScreen(
                             val divider = @Composable {
                                 HorizontalDivider(
                                     modifier = Modifier.padding(horizontal = 8.dp),
-                                    color = Color(0xfff0f0f0)
+                                    color = Color(0xfff6f6f6),
+                                    thickness = 0.5.dp
                                 )
                             }
 
@@ -296,16 +300,75 @@ internal fun UserInfoScreen(
                             }
                             divider()
                             UserInfoChipItem(keyText = "注册时间", enabled = false) {
-                                Text(text = userData.createTime.toString())
+                                Text(text = userData.createTime.toDateString())
                             }
 
                             divider()
                             UserInfoChipItem(keyText = "最后更新时间", enabled = false) {
-                                Text(text = userData.updateTime.toString())
+                                Text(text = userData.updateTime.toDateString())
                             }
+
                         }
                     }
+
+                    // 登出提示
+                    var logoutConfirmDialogVisibility by remember {
+                        mutableStateOf(false)
+                    }
+
+                    if (logoutConfirmDialogVisibility) {
+                        AlertDialog(
+                            onDismissRequest = { /**/ },
+                            confirmButton = {
+                                Text(text = "确认登出",
+                                    color = Color(0xffe60012),
+                                    modifier = Modifier
+                                        .clickable {
+                                            logoutConfirmDialogVisibility = false
+                                            onLogoutClick()
+                                        }
+                                        .padding(vertical = 2.dp, horizontal = 4.dp))
+                            },
+                            dismissButton = {
+                                Text(
+                                    text = "取消", modifier = Modifier
+                                        .clickable {
+                                            logoutConfirmDialogVisibility = false
+                                        }
+                                        .padding(vertical = 2.dp, horizontal = 4.dp)
+                                )
+                            },
+                            title = {
+                                Text(
+                                    text = "登出确认",
+                                    fontSize = 20.sp,
+
+                                    )
+                            },
+                            text = {
+                                Text(text = "是否确认退出登录？")
+                            },
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            logoutConfirmDialogVisibility = true
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp, horizontal = 16.dp)
+                            .height(48.dp),
+                        colors = ButtonDefaults.buttonColors().copy(
+                            containerColor = Color(0xffe60012)
+                        )
+                    ) {
+                        Text(text = "退出登录", color = Color.White)
+                    }
                 }
+
             }
         }
     }
@@ -409,7 +472,7 @@ private fun PhoneUpdateDialog(
                 TextButton(onClick = onDismissRequest) { Text(text = "取消") }
             },
             title = {
-                Text(text = "更新手机号")
+                Text(text = "更新手机号", fontSize = 20.sp)
             },
             text = {
                 ClearableTextFiled(
@@ -423,7 +486,8 @@ private fun PhoneUpdateDialog(
                         Text(text = error ?: "")
                     }
                 )
-            }
+            },
+            shape = RoundedCornerShape(8.dp)
         )
     }
 }
@@ -465,7 +529,7 @@ private fun NicknameUpdateDialog(
                 TextButton(onClick = onDismissRequest) { Text(text = "取消") }
             },
             title = {
-                Text(text = "更新昵称")
+                Text(text = "更新昵称", fontSize = 20.sp)
             },
             text = {
                 ClearableTextFiled(
@@ -479,7 +543,9 @@ private fun NicknameUpdateDialog(
                         Text(text = error ?: "")
                     }
                 )
-            }
+            },
+            shape = RoundedCornerShape(8.dp)
+
         )
     }
 }
@@ -580,6 +646,7 @@ private fun UserInfoScreenPreview() {
         onUpdateAvatar = {},
         onUpdateSex = {},
         onUpdateNickname = {},
-        onErrorMessage = {}
+        onErrorMessage = {},
+        onLogoutClick = {}
     )
 }

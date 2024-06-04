@@ -25,7 +25,8 @@ object MineNestedNavRoute : NavigationRoute {
         navigate(this@MineNestedNavRoute.route, navOptions)
 
     fun NavGraphBuilder.nestedMineNavGraph(
-        navHostController: NavHostController
+        navHostController: NavHostController,
+        onLoginNavigate: () -> Unit,
     ) {
         navigation(
             startDestination = MineNavigationRoute.route,
@@ -36,7 +37,8 @@ object MineNestedNavRoute : NavigationRoute {
 
             mineScreen(
                 navController = navHostController,
-                parentRoute = this@MineNestedNavRoute.route
+                parentRoute = this@MineNestedNavRoute.route,
+                onLoginNavigate = onLoginNavigate
             )
             userInfoScreen(
                 navController = navHostController,

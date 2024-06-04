@@ -350,6 +350,16 @@ internal class UserMineViewModel @Inject constructor(
         }
     }
 
+    /**
+     * 登出
+     * */
+    fun logout() {
+        userDataSource.updateUserData {
+            UserPreferences.getDefaultInstance()
+        }
+        uiState
+    }
+
 
     override fun onCleared() {
         super.onCleared()

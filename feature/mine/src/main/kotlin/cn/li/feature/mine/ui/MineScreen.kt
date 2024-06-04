@@ -1,8 +1,10 @@
 package cn.li.feature.mine.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,8 +29,11 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,8 +42,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
@@ -49,6 +56,7 @@ import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.layoutId
 import cn.li.common.ext.cast
 import cn.li.core.ui.base.GradientBackground
+import cn.li.core.ui.base.LToast
 import cn.li.core.ui.base.SwipeRefreshBox
 import cn.li.core.ui.end
 import cn.li.core.ui.start
@@ -72,11 +80,11 @@ fun MineScreen(
     onUserInfoNavigation: () -> Unit,
     onAddressManagementNavigation: () -> Unit,
     onSettingsNavigation: () -> Unit,
+    onLoginNavigate: () -> Unit,
 ) {
-    Box(
+    Surface(
         modifier = Modifier
             .fillMaxSize(),
-        contentAlignment = Alignment.Center
     ) {
         // 加载中时显示进度条
         if (uiState == UserMineUiState.Loading) {
@@ -84,13 +92,23 @@ fun MineScreen(
                 color = LightGreenColor
             )
         }
+        // 用户信息
+        val userInfo by remember {
+            mutableStateOf<UserPreferences?>(null)
+        }.apply {
+            if (uiState is UserMineUiState.Success) {
+                this.value = uiState.userPreferences
+            } else if (uiState is UserMineUiState.UnLogin) {
+                this.value = null
+            }
+        }
+
         GradientBackground(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(.5f)
-                .align(Alignment.TopEnd),
+                .fillMaxHeight(.5f),
             gradientColors = GradientColors(
-                top = LightGreenColor,
+                top = Color.Transparent,
             )
         ) {
             Spacer(modifier = Modifier.fillMaxHeight())
@@ -113,20 +131,20 @@ fun MineScreen(
                 ) {
                     // 顶部栏
                     TopToolbar(
-                        modifier = Modifier.background(Color.Transparent),
+                        modifier = Modifier
+                            .background(Color.Transparent)
+                            .drawWithContent { /* 等同于 invisibility */ },
                         onSettingNavigation = onSettingsNavigation
                     )
-                    // 用户信息栏
-                    val user = uiState
-                        .takeIf { it is UserMineUiState.Success }
-                        ?.cast<UserMineUiState.Success>()
-                        ?.userPreferences
 
+                    // 用户信息栏
                     UserInfo(
-                        userPreferences = user,
+                        userPreferences = userInfo,
                         modifier = Modifier.fillMaxWidth(),
-                        onRightIconClick = onUserInfoNavigation
+                        onRightIconClick = onUserInfoNavigation,
+                        onLoginNavigate = onLoginNavigate
                     )
+
                     Spacer(modifier = Modifier.height(16.dp))
                     // 选项
                     Card(
@@ -137,6 +155,7 @@ fun MineScreen(
                             .fillMaxWidth()
                             .height(200.dp)
                             .padding(vertical = 8.dp, horizontal = 8.dp),
+                        elevation = CardDefaults.cardElevation(2.dp)
                     ) {
                         Column(modifier = Modifier.padding(8.dp)) {
                             ChipItem(
@@ -168,14 +187,39 @@ fun MineScreen(
 internal fun UserInfo(
     userPreferences: UserPreferences?,
     onRightIconClick: () -> Unit,
+    onLoginNavigate: () -> Unit,
     modifier: Modifier = Modifier,
     constraintSet: ConstraintSet = UserInfoDefaults.constraintSet(),
 ) {
+
+    var clicked by remember {
+        mutableStateOf(false)
+    }
+
+    if (clicked) {
+        if (userPreferences == null) {
+            LToast(text = "未登录，请先登录", duration = Toast.LENGTH_SHORT)
+            onLoginNavigate()
+        } else {
+            onRightIconClick()
+        }
+    }
+    val scope = rememberCoroutineScope()
+
     ConstraintLayout(
         modifier = modifier
             .fillMaxWidth()
             .height(80.dp)
-            .padding(vertical = 16.dp, horizontal = 8.dp),
+            .padding(vertical = 16.dp, horizontal = 8.dp)
+            .pointerInput(onRightIconClick) {
+                detectTapGestures {
+                    clicked = true
+                    scope.launch {
+                        delay(300)
+                        clicked = false
+                    }
+                }
+            },
         constraintSet = constraintSet,
     ) {
         Box(
@@ -247,9 +291,6 @@ internal fun UserInfo(
             modifier = Modifier
                 .layoutId("rightIcon")
                 .clip(CircleShape)
-                .clickable(
-                    onClick = onRightIconClick
-                )
                 .size(48.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -359,6 +400,7 @@ private fun MineScreenPreview() {
         },
         onUserInfoNavigation = {},
         onAddressManagementNavigation = {},
-        onSettingsNavigation = {}
+        onSettingsNavigation = {},
+        onLoginNavigate = {}
     )
 }

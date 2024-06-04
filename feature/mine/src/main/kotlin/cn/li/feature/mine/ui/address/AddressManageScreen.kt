@@ -1,39 +1,40 @@
 package cn.li.feature.mine.ui.address
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddBusiness
 import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,15 +49,12 @@ import cn.li.core.ui.bottom
 import cn.li.core.ui.end
 import cn.li.core.ui.horizontalCenter
 import cn.li.core.ui.loading.LoadingBottomSheetLayout
-import cn.li.core.ui.loading.LoadingDialog
 import cn.li.core.ui.start
 import cn.li.core.ui.top
 import cn.li.core.ui.verticalCenter
 import cn.li.feature.mine.UserAddressUiState
 import cn.li.network.dto.user.AddressBookDTO
 import cn.li.network.dto.user.UserLoginResult
-import com.google.common.collect.ImmutableList
-import kotlinx.coroutines.delay
 
 /**
  * @param onSelectedItem 选中地址
@@ -66,6 +64,7 @@ import kotlinx.coroutines.delay
  * */
 @Composable
 internal fun AddressManageScreen(
+    shouldSelect: Boolean,
     uiState: UserAddressUiState,
     onBackClick: () -> Unit,
     onSelectedItem: (Long) -> Unit,
@@ -97,10 +96,69 @@ internal fun AddressManageScreen(
                 withDismissAction = true,
                 duration = SnackbarDuration.Indefinite
             )
+
             else -> {
 
             }
         }
+    }
+
+    var selectedConfirmDialogVisibility by remember {
+        mutableStateOf(false)
+    }
+
+    var selectedItem by remember {
+        mutableStateOf<AddressBookDTO?>(null)
+    }
+
+
+    if (selectedConfirmDialogVisibility) {
+        AlertDialog(
+            onDismissRequest = { /**/ },
+            confirmButton = {
+                OutlinedButton(
+                    onClick = {
+                        selectedConfirmDialogVisibility = false
+                    },
+                    shape = RoundedCornerShape(8.dp),
+                ) {
+                    Text(text = "确认")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = {
+                        if (shouldSelect) onSelectedItem(selectedItem?.id!!)
+                        selectedItem = null
+                        selectedConfirmDialogVisibility = false
+                    },
+                    shape = RoundedCornerShape(8.dp),
+                ) {
+                    Text(text = "更换地址")
+                }
+            },
+            title = {
+                Text(
+                    text = "请确认您的收获信息",
+                    fontSize = 18.sp,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            },
+            text = {
+                Column {
+                    Text(text = "收货地址：", fontSize = 16.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = selectedItem!!.let {
+                            "${it.provinceName ?: ""}${it.cityName ?: ""}${it.districtName ?: ""}${it.detail}"
+                        },
+                        fontSize = 14.sp
+                    )
+                }
+            },
+            shape = RoundedCornerShape(8.dp)
+        )
     }
 
     Surface(
@@ -152,7 +210,12 @@ internal fun AddressManageScreen(
                                     AddressItem(
                                         item = addressItem,
                                         modifier = Modifier.fillMaxSize(),
-                                        onSelectRequest = { onSelectedItem(it.id) },
+                                        onSelectRequest = {
+                                            if (shouldSelect) {
+                                                selectedItem = it
+                                                selectedConfirmDialogVisibility = true
+                                            }
+                                        },
                                         onEditRequest = { onEditClick(it.id) }
                                     )
                                 }
@@ -266,8 +329,7 @@ private fun AddressItem(
                         end.linkTo(editIconRef.start)
                         horizontalBias = 0f
                     }
-                    .padding(horizontal = 4.dp, vertical = 2.dp)
-                    .size(width = 30.dp, height = 18.dp),
+                    .padding(horizontal = 4.dp, vertical = 2.dp),
                 fontSize = 16.sp
             )
         }
@@ -291,26 +353,28 @@ private fun AddressItem(
 @Composable
 private fun AddressScreenPreview() {
     Box(modifier = Modifier.fillMaxSize()) {
-        AddressManageScreen(uiState = UserAddressUiState.FetchSuccess(
-            listOf(
-                AddressBookDTO(
-                    id = 0L,
-                    userId = 0L,
-                    consignee = "璃",
-                    sex = 1,
-                    phone = "1234567890",
-                    provinceName = "广西省",
-                    provinceCode = "11",
-                    cityCode = "12",
-                    cityName = "桂林市",
-                    districtCode = "123",
-                    districtName = "临川县",
-                    detail = "xxxxxx",
-                    isDefault = 1,
-                    label = "xxx"
+        AddressManageScreen(
+            shouldSelect = false,
+            uiState = UserAddressUiState.FetchSuccess(
+                listOf(
+                    AddressBookDTO(
+                        id = 0L,
+                        userId = 0L,
+                        consignee = "璃",
+                        sex = 1,
+                        phone = "1234567890",
+                        provinceName = "广西省",
+                        provinceCode = "11",
+                        cityCode = "12",
+                        cityName = "桂林市",
+                        districtCode = "123",
+                        districtName = "临川县",
+                        detail = "xxxxxx",
+                        isDefault = 1,
+                        label = "xxx"
+                    )
                 )
-            )
-        ),
+            ),
             onBackClick = { /*TODO*/ },
             onSelectedItem = {},
             onEditClick = {},

@@ -76,6 +76,7 @@ object UserAddressManageNavigation : NavigationRoute {
             val selectedKey = it.arguments?.getString(Arguments.KEY)!!
 
             AddressManageRoute(
+                shouldSelect = selectedKey.isNotEmpty(),
                 onAddClick = {
                     navHostController.navigateToAddAddress(addressId = null, navOptions {
                         launchSingleTop = true
@@ -107,6 +108,7 @@ object UserAddressManageNavigation : NavigationRoute {
 
 @Composable
 internal fun AddressManageRoute(
+    shouldSelect: Boolean,
     onAddClick: () -> Unit,
     onBackClick: () -> Unit,
     onUpdateNavigate: (Long) -> Unit,
@@ -120,6 +122,7 @@ internal fun AddressManageRoute(
     }
 
     AddressManageScreen(
+        shouldSelect = shouldSelect,
         uiState = uiState,
         onBackClick = onBackClick,
         onSelectedItem = onSelectedItem,

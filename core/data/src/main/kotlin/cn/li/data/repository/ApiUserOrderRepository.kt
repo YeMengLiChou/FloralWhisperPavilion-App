@@ -5,8 +5,10 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import cn.li.network.api.user.UserOrderDataSource
 import cn.li.network.dto.ApiPagination
+import cn.li.network.dto.ApiPagination1
 import cn.li.network.dto.ApiResult
 import cn.li.network.dto.user.OrderDetailDTO
+import cn.li.network.dto.user.OrderRecordDTO
 import cn.li.network.dto.user.OrderSubmitDTO
 import cn.li.network.dto.user.OrderSubmitResultDTO
 import cn.li.network.retrofit.datasource.UserOrderPagingSource
@@ -18,8 +20,10 @@ import javax.inject.Singleton
 class ApiUserOrderRepository
 @Inject constructor(
     private val dataSource: UserOrderDataSource,
-    private val pagingSource: UserOrderPagingSource
 ) : UserOrderRepository {
+
+
+
     override suspend fun getOrderDetail(id: Long): ApiResult<OrderDetailDTO> {
         return dataSource.getOrderDetail(id)
     }
@@ -28,14 +32,14 @@ class ApiUserOrderRepository
         return dataSource.cancelOrder(id)
     }
 
-    override suspend fun getHistoryOrders(queryMap: Map<String, Any>): ApiResult<ApiPagination<OrderDetailDTO>> {
+    override suspend fun getHistoryOrders(queryMap: Map<String, Any>): ApiResult<ApiPagination1<OrderRecordDTO>> {
         return dataSource.getHistoryOrders(queryMap)
     }
 
     override suspend fun getUncompletedOrders(
         pageNo: Int,
         pageSize: Int
-    ): ApiResult<ApiPagination<OrderDetailDTO>> {
+    ): ApiResult<ApiPagination1<OrderRecordDTO>> {
         return getHistoryOrders(
             mapOf(
                 "pageNo" to pageNo,
@@ -51,7 +55,7 @@ class ApiUserOrderRepository
     override fun getUncompletedOrderPagingData(
         pageSize: Int,
         prefetchDistance: Int
-    ): Flow<PagingData<OrderDetailDTO>> {
+    ): Flow<PagingData<OrderRecordDTO>> {
         return Pager(
             PagingConfig(
                 pageSize = pageSize,
@@ -59,15 +63,17 @@ class ApiUserOrderRepository
                 enablePlaceholders = false
             )
         ) {
-            pagingSource.setCompletedOrder(completedOrder = false)
-            pagingSource
+            UserOrderPagingSource(
+                dataSource = dataSource,
+                completedOrder = false
+            )
         }.flow
     }
 
     override fun getCompletedOrderPagingData(
         pageSize: Int,
         prefetchDistance: Int
-    ): Flow<PagingData<OrderDetailDTO>> {
+    ): Flow<PagingData<OrderRecordDTO>> {
         return Pager(
             PagingConfig(
                 pageSize = pageSize,
@@ -75,15 +81,17 @@ class ApiUserOrderRepository
                 enablePlaceholders = false
             )
         ) {
-            pagingSource.setCompletedOrder(completedOrder = true)
-            pagingSource
+            UserOrderPagingSource(
+                dataSource = dataSource,
+                completedOrder = true
+            )
         }.flow
     }
 
     override suspend fun getCompletedOrders(
         pageNo: Int,
         pageSize: Int
-    ): ApiResult<ApiPagination<OrderDetailDTO>> {
+    ): ApiResult<ApiPagination1<OrderRecordDTO>> {
         return getHistoryOrders(
             mapOf(
                 "pageNo" to pageNo,

@@ -1,12 +1,15 @@
 package cn.li.network.retrofit.datasource
 
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import cn.li.network.api.user.UserOrderApi
 import cn.li.network.api.user.UserOrderDataSource
 import cn.li.network.dto.ApiPagination
+import cn.li.network.dto.ApiPagination1
 import cn.li.network.dto.ApiResult
 import cn.li.network.dto.user.OrderDetailDTO
+import cn.li.network.dto.user.OrderRecordDTO
 import cn.li.network.dto.user.OrderSubmitDTO
 import cn.li.network.dto.user.OrderSubmitResultDTO
 import retrofit2.Retrofit
@@ -28,7 +31,7 @@ class RetrofitUserOrderDataSource @Inject constructor(
         return api.cancelOrder(id)
     }
 
-    override suspend fun getHistoryOrders(queryMap: Map<String, Any>): ApiResult<ApiPagination<OrderDetailDTO>> {
+    override suspend fun getHistoryOrders(queryMap: Map<String, Any>): ApiResult<ApiPagination1<OrderRecordDTO>> {
         return api.getHistoryOrders(queryMap)
     }
 
@@ -44,53 +47,40 @@ class RetrofitUserOrderDataSource @Inject constructor(
         status: Int,
         pageNo: Int,
         pageSize: Int
-    ): ApiResult<ApiPagination<OrderDetailDTO>> {
+    ): ApiResult<ApiPagination1<OrderRecordDTO>> {
         return api.fetchOrdersList(status, pageNo, pageSize)
     }
 }
 
 
-@Singleton
 class UserOrderPagingSource @Inject constructor(
     private val dataSource: UserOrderDataSource,
-) : PagingSource<Int, OrderDetailDTO>() {
+    private val completedOrder: Boolean
+) : PagingSource<Int, OrderRecordDTO>() {
 
-
-    private var completedOrder = false
-
-    fun setCompletedOrder(completedOrder: Boolean) {
-        this.completedOrder = completedOrder
-    }
-
-    override fun getRefreshKey(state: PagingState<Int, OrderDetailDTO>): Int? {
+    override fun getRefreshKey(state: PagingState<Int, OrderRecordDTO>): Int? {
         return null
     }
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, OrderDetailDTO> {
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, OrderRecordDTO> {
         return try {
             val currentPage = params.key ?: 1
-            val response = if (completedOrder) {
-                dataSource.fetchOrdersList(
-                    status = 1,
-                    pageNo = currentPage,
-                    pageSize = params.loadSize
-                )
-            } else {
-                dataSource.fetchOrdersList(
-                    status = 1,
-                    pageNo = currentPage,
-                    pageSize = params.loadSize
-                )
-            }
 
+            val response = dataSource.fetchOrdersList(
+                status = if (completedOrder) 1 else 0,
+                pageNo = currentPage,
+                pageSize = params.loadSize
+            )
+
+            Log.d("UserOrderViewModel", "load: $response")
             val data = response.data
-
             LoadResult.Page(
                 data = data!!.records,
                 prevKey = if (currentPage == 1) null else currentPage - 1,
-                nextKey = if (currentPage < response.data.pageNo) currentPage + 1 else null
+                nextKey = if (currentPage < response.data.current) currentPage + 1 else null
             )
         } catch (e: Exception) {
+            Log.e("UserOrderViewModel", "load-error: ", e)
             LoadResult.Error(e)
         }
     }

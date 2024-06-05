@@ -13,8 +13,8 @@ data class UserOrderItemVo(
     val shopName: String,
     val shopAddress: String,
     val statusText: String,
-    val completedOrderTime: Long,
-    val submitOrderTime: Long,
+    val completedOrderTime: String?,
+    val submitOrderTime: String,
     val commodityCount: Int,
     val commodityList: List<CommodityItemVO>
 )

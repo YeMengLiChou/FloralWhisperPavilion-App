@@ -1,8 +1,10 @@
 package cn.li.network.api.user
 
 import cn.li.network.dto.ApiPagination
+import cn.li.network.dto.ApiPagination1
 import cn.li.network.dto.ApiResult
 import cn.li.network.dto.user.OrderDetailDTO
+import cn.li.network.dto.user.OrderRecordDTO
 import cn.li.network.dto.user.OrderSubmitDTO
 import cn.li.network.dto.user.OrderSubmitResultDTO
 import retrofit2.http.Body
@@ -42,8 +44,8 @@ internal interface UserOrderApi {
      * @see [OrderDetailDTO]
      * See: [文档](http://8.134.200.196:8080/doc.html#/user/%E7%94%A8%E6%88%B7%E8%AE%A2%E5%8D%95%E7%9B%B8%E5%85%B3%E6%8E%A5%E5%8F%A3/page)
      * */
-    @GET("user/order/page")
-    suspend fun getHistoryOrders(@QueryMap queryMap: Map<String, Any>): ApiResult<ApiPagination<OrderDetailDTO>>
+    @GET("user/order/page1")
+    suspend fun getHistoryOrders(@QueryMap queryMap: Map<String, Any>): ApiResult<ApiPagination1<OrderRecordDTO>>
 
     /**
      * 支付订单
@@ -63,12 +65,12 @@ internal interface UserOrderApi {
     @POST("user/order/sumbit")
     suspend fun submitOrder(@Body dto: OrderSubmitDTO): ApiResult<OrderSubmitResultDTO>
 
-    @GET("user/order/is-finish")
+    @GET("user/order/is-finish1")
     suspend fun fetchOrdersList(
         @Query("status") status: Int,
         @Query("pageNo") pageNo: Int,
         @Query("pageSize") pageSize: Int
-    ): ApiResult<ApiPagination<OrderDetailDTO>>
+    ): ApiResult<ApiPagination1<OrderRecordDTO>>
 }
 
 
@@ -77,7 +79,7 @@ interface UserOrderDataSource {
 
     suspend fun cancelOrder(id: Long): ApiResult<Nothing>
 
-    suspend fun getHistoryOrders(queryMap: Map<String, Any>): ApiResult<ApiPagination<OrderDetailDTO>>
+    suspend fun getHistoryOrders(queryMap: Map<String, Any>): ApiResult<ApiPagination1<OrderRecordDTO>>
 
     suspend fun payOrder(): ApiResult<Nothing>
 
@@ -87,5 +89,5 @@ interface UserOrderDataSource {
         status: Int,
         pageNo: Int,
         pageSize: Int
-    ): ApiResult<ApiPagination<OrderDetailDTO>>
+    ): ApiResult<ApiPagination1<OrderRecordDTO>>
 }

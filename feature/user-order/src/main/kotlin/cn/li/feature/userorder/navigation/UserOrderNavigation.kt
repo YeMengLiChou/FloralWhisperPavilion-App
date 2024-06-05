@@ -1,6 +1,8 @@
 package cn.li.feature.userorder.navigation
 
+import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,11 +54,12 @@ fun UserOrderRoute(
 
     val completedOrderItems by rememberUpdatedState(newValue = viewModel.completedOrder.collectAsLazyPagingItems())
 
-    var completedFetched by remember {
-        mutableStateOf(false)
-    }
-    var uncompletedFetched by remember {
-        mutableStateOf(false)
+    SideEffect {
+        Log.d(
+            "UserOrderRoute", "UserOrderRoute: ${
+                completedOrderItems.itemCount
+            }"
+        )
     }
 
     UserOrderScreen(
@@ -64,16 +67,10 @@ fun UserOrderRoute(
         completeItems = completedOrderItems,
         uncompletedItems = uncompletedOrderItems,
         onUncompletedOrderSwitch = {
-            if (!completedFetched) {
-                viewModel.getCompletedOrder()
-                completedFetched = true
-            }
+
         },
         onHistoryOrderSwitch = {
-            if (!uncompletedFetched) {
-                viewModel.getUncompletedOrder()
-                uncompletedFetched = true
-            }
+
         },
     )
 }

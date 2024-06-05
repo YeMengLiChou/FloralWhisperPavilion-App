@@ -102,7 +102,7 @@ data class AddressBookDTO(
     val cityName: String?,
     val districtCode: String?,
     val districtName: String?,
-    val detail: String,
+    val detail: String?,
     val label: String?,
     val isDefault: Short,
 )
@@ -123,6 +123,6 @@ fun AddressBookDTO.toUpdateDTO(): AddressBookUpdateDTO {
         districtName = districtName,
         districtCode = districtCode,
         label = label,
-        detail = detail
+        detail = detail?:""
     )
 }

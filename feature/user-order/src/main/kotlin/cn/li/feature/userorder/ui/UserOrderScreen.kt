@@ -1,10 +1,11 @@
 package cn.li.feature.userorder.ui
 
-import android.widget.Space
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
@@ -19,6 +21,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -42,15 +45,13 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.layoutId
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
-import cn.li.core.ui.bottom
 import cn.li.core.ui.end
 import cn.li.core.ui.start
 import cn.li.core.ui.top
 import cn.li.feature.userorder.UserOrderUiState
 import cn.li.feature.userorder.vo.UserOrderItemVo
-import cn.li.network.dto.user.ItemDetail
-import cn.li.network.dto.user.OrderDetailDTO
 import coil.compose.SubcomposeAsyncImage
 import kotlinx.coroutines.launch
 import kotlin.math.min
@@ -58,10 +59,9 @@ import kotlin.math.min
 @Composable
 fun UserOrderScreen(
     uiState: UserOrderUiState,
+
     completeItems: LazyPagingItems<UserOrderItemVo>,
     uncompletedItems: LazyPagingItems<UserOrderItemVo>,
-    onUncompletedOrderSwitch: () -> Unit,
-    onHistoryOrderSwitch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var selectedTabIndex by rememberSaveable {
@@ -109,15 +109,6 @@ fun UserOrderScreen(
                         selected = selectedTabIndex == index,
                         onClick = {
                             selectedTabIndex = index
-                            when (index) {
-                                0 -> {
-                                    onUncompletedOrderSwitch()
-                                }
-
-                                1 -> {
-                                    onHistoryOrderSwitch()
-                                }
-                            }
                             scope.launch { pagerState.animateScrollToPage(index) }
                         },
                     ) {
@@ -130,11 +121,14 @@ fun UserOrderScreen(
                 selectedTabIndex = pageIndex
                 when (pageIndex) {
                     0 -> {
-                        UncompletedOrderPage(items = uncompletedItems)
+                        UncompletedOrderPage(
+                            items = uncompletedItems,
+                            modifier = Modifier.fillMaxSize()
+                        )
                     }
 
                     1 -> {
-                        CompletedOrderPage(items = completeItems)
+                        CompletedOrderPage(items = completeItems, modifier = Modifier.fillMaxSize())
                     }
                 }
             }
@@ -148,20 +142,49 @@ private fun UncompletedOrderPage(
     items: LazyPagingItems<UserOrderItemVo>,
     modifier: Modifier = Modifier
 ) {
-    if (items.itemCount != 0) {
-        LazyColumn(modifier = modifier) {
-            items(items.itemCount) { index ->
-                val item = items[index]
-                if (item != null) {
-                    OrderItem(item = item)
+
+    LazyColumn(modifier = modifier) {
+        if (items.loadState.refresh == LoadState.Loading) {
+            item {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    CircularProgressIndicator()
+                    Text(text = "加载中...")
                 }
             }
         }
-    } else {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Text(text = "暂无数据")
+        if (items.itemCount == 0) {
+            item {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "暂无数据",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(240.dp)
+                            .wrapContentSize(Alignment.Center),
+                    )
+                }
+            }
+        } else {
+            items(items.itemCount) {
+                val item = items[it]
+                if (item != null) {
+                    OrderItem(
+                        item = item,
+                        modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                    )
+                }
+            }
+        }
+        if (items.loadState.append == LoadState.Loading) {
+            item {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    CircularProgressIndicator()
+                    Text(text = "加载中...")
+                }
+            }
         }
     }
+
 }
 
 @Composable
@@ -169,18 +192,45 @@ private fun CompletedOrderPage(
     items: LazyPagingItems<UserOrderItemVo>,
     modifier: Modifier = Modifier
 ) {
-    if (items.itemCount != 0) {
-        LazyColumn(modifier = modifier) {
-            items(items.itemCount) { index ->
-                val item = items[index]
-                if (item != null) {
-                    OrderItem(item = item)
+    LazyColumn(modifier = modifier) {
+        if (items.loadState.refresh == LoadState.Loading) {
+            item {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    CircularProgressIndicator()
+                    Text(text = "加载中...")
                 }
             }
         }
-    } else {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Text(text = "暂无数据")
+        if (items.itemCount == 0) {
+            item {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "暂无数据",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(240.dp)
+                            .wrapContentSize(Alignment.Center),
+                    )
+                }
+            }
+        } else {
+            items(items.itemCount) {
+                val item = items[it]
+                if (item != null) {
+                    OrderItem(
+                        item = item,
+                        modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp)
+                    )
+                }
+            }
+        }
+        if (items.loadState.append == LoadState.Loading) {
+            item {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    CircularProgressIndicator()
+                    Text(text = "加载中...")
+                }
+            }
         }
     }
 }
@@ -195,7 +245,15 @@ private fun OrderItem(
     modifier: Modifier = Modifier,
     constraintSet: ConstraintSet = UserOrderScreenDefaults.orderItemConstraintSet,
 ) {
-    Card(modifier = modifier.fillMaxSize(), elevation = CardDefaults.cardElevation()) {
+    Card(
+        modifier = modifier.fillMaxSize(),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
+        ),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )
+    ) {
         ConstraintLayout(
             constraintSet = constraintSet,
             modifier = Modifier
@@ -205,12 +263,16 @@ private fun OrderItem(
             Column(modifier = Modifier.layoutId("address")) {
                 Text(text = item.shopName, fontSize = 16.sp)
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(text = "日期", fontSize = 12.sp, color = Color.Gray)
+                Text(text = item.submitOrderTime, fontSize = 12.sp, color = Color.Gray)
             }
 
-            Text(text = "状态", modifier = Modifier.layoutId("status"))
+            Text(text = item.statusText, modifier = Modifier.layoutId("status"))
 
-            Row(modifier = Modifier.layoutId("image")) {
+            Row(
+                modifier = Modifier
+                    .layoutId("image")
+                    .height(IntrinsicSize.Min)
+            ) {
                 if (item.commodityList.size == 1) {
                     SubcomposeAsyncImage(
                         model = item.commodityList.first().imageUrl,
@@ -220,7 +282,13 @@ private fun OrderItem(
                             .clip(RoundedCornerShape(8.dp)),
                         contentScale = ContentScale.Crop
                     )
-                    Text(text = item.commodityList.first().name)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = item.commodityList.first().name,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .wrapContentHeight(Alignment.CenterVertically),
+                    )
                 } else {
                     val omitVisibility = item.commodityList.size > 3
                     for (i in 0 until min(3, item.commodityList.size)) {
@@ -235,7 +303,13 @@ private fun OrderItem(
                         Spacer(modifier = Modifier.width(4.dp))
                     }
                     if (omitVisibility) {
-                        Text(text = "...")
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "...",
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .wrapContentHeight(Alignment.Bottom),
+                        )
                     }
                 }
             }
@@ -291,8 +365,8 @@ private fun OrderItemPreview() {
                 orderNumber = "123456789",
                 shopName = "店铺名称",
                 statusText = "待付款",
-                completedOrderTime = 0L,
-                submitOrderTime = 0L,
+                completedOrderTime = "",
+                submitOrderTime = "",
                 commodityCount = 1,
                 shopAddress = "",
                 commodityList = listOf()

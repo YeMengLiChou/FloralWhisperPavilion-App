@@ -16,3 +16,10 @@ data class ApiPagination<T>(
 )
 
 
+data class ApiPagination1<T>(
+    val total: Long,
+    val size: Long,
+    val current: Long,
+    val pages: Long,
+    val records: List<T>
+)

@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import androidx.paging.map
 import cn.li.common.ext.sumAmountOf
 import cn.li.data.repository.AddressRepository
@@ -14,23 +14,22 @@ import cn.li.data.repository.UserRepository
 import cn.li.data.repository.UserShopCartRepository
 import cn.li.feature.userorder.vo.UserOrderItemVo
 import cn.li.feature.userorder.vo.UserOrderSettlementVo
+import cn.li.model.CommodityItemVO
 import cn.li.network.dto.onError
 import cn.li.network.dto.onSuccess
 import cn.li.network.dto.user.OrderDetailDTO
+import cn.li.network.dto.user.OrderRecordDTO
 import cn.li.network.dto.user.OrderSubmitDTO
 import cn.li.network.dto.user.OrderSubmitResultDTO
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -48,62 +47,61 @@ class UserOrderViewModel
     private val _userOrderUiState = MutableStateFlow<UserOrderUiState>(UserOrderUiState.Loading)
     val userOrderUiState = _userOrderUiState.asStateFlow()
 
-    private val _uncompletedOrder = MutableStateFlow<PagingData<UserOrderItemVo>>(PagingData.empty())
-    val uncompletedOrder = _uncompletedOrder.asStateFlow()
 
-    private var getUnCompletedOrderJob: Job? = null
-
-    fun getUncompletedOrder() {
-        _userOrderUiState.value = UserOrderUiState.Loading
-        getUnCompletedOrderJob?.cancel()
-
-        getUnCompletedOrderJob = viewModelScope.launch(Dispatchers.IO) {
-            runCatching {
-                userOrderRepository.getUncompletedOrderPagingData()
-//                    .collectLatest { _uncompletedOrder.value = it }
-            }.onFailure {
-                if (it is CancellationException) return@onFailure
-                Log.d(TAG, "getUncompletedOrder-failed: $it")
-                _userOrderUiState.value = UserOrderUiState.Failure(it.message ?: "出现问题，请刷新")
+    private fun transformOrderVo(record: OrderRecordDTO): UserOrderItemVo {
+        return UserOrderItemVo(
+            orderId = record.orders.id,
+            orderNumber = record.orders.number,
+            orderTotalAmount = record.orders.amount.toString(),
+            completedOrderTime = record.orders.deliveryTime,
+            commodityCount = record.orderDetailList.sumOf { it.number },
+            shopName = record.shop.name,
+            shopAddress = record.shop.address,
+            submitOrderTime = record.orders.orderTime,
+            statusText = when (record.orders.status) {
+                1 -> "待付款"
+                2 -> "待接单"
+                3 -> "已接单"
+                4 -> "派送中"
+                5 -> "已完成"
+                6 -> "已取消"
+                else -> throw IllegalStateException("order-status has a illegal value: ${record.orders.status}")
+            },
+            commodityList = record.orderDetailList.map {
+                CommodityItemVO(
+                    id = it.dishId,
+                    name = it.name,
+                    imageUrl = it.image,
+                    price = it.amount,
+                    description = "",
+                    status = 0,
+                    cartItemId = 0,
+                    isSetmeal = 0,
+                    cartCount = it.number
+                )
             }
-        }
+        )
     }
 
-    private val _completedOrder = MutableStateFlow<PagingData<UserOrderItemVo>>(PagingData.empty())
-    val completedOrder = _completedOrder.asStateFlow()
 
-    private var getCompletedOrderJob: Job? = null
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun getCompletedOrder() {
-        _userOrderUiState.value = UserOrderUiState.Loading
-        getCompletedOrderJob?.cancel()
-
-        getCompletedOrderJob = viewModelScope.launch(Dispatchers.IO) {
-            runCatching {
-                val shopInfoList = shopRepository.getShopList().data!!
-                userOrderRepository.getCompletedOrderPagingData()
-//                    .mapLatest { pagingData ->
-//                        pagingData.map {
-//                            val userInfo = userRepository.getUserInfo(it.userId)
-//                            return@map UserOrderItemVo(
-//                                orderId = it.id,
-//                                orderNumber = it.number,
-//                                orderTotalAmount = it.amount.toString(),
-//                                shopAddress = shopInfoList.first { shop -> shop.id = it.shopId }.address,
-//                                shopName = shopInfoList.first { shop -> shop.id = it.shopId }.name,
-//
-//                            )
-//                        }
-//                    }
-//                    .collectLatest { _completedOrder.value = it }
-            }.onFailure {
-                if (it is CancellationException) return@onFailure
-                Log.d(TAG, "getCompletedOrder-failed: $it")
-                _userOrderUiState.value = UserOrderUiState.Failure(it.message ?: "出现问题，请刷新")
+    val uncompletedOrder
+        get() = userOrderRepository.getUncompletedOrderPagingData(pageSize = 25)
+            .map {
+                it.map { record -> transformOrderVo(record) }
             }
-        }
-    }
+            .cachedIn(viewModelScope)
+
+
+    val completedOrder
+        get() = userOrderRepository.getCompletedOrderPagingData(pageSize = 25)
+            .map {
+                Log.d(TAG, "completed: $it")
+                it.map { record ->
+                    Log.d(TAG, "completed: $record")
+                    transformOrderVo(record)
+                }
+            }
+            .cachedIn(viewModelScope)
 
 
     /**
@@ -182,11 +180,14 @@ class UserOrderViewModel
         submitUserOrderJob = viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 userOrderRepository.submitOrder(dto = submitInfo)
-            }.onSuccess {apiResult ->
+            }.onSuccess { apiResult ->
                 apiResult.onSuccess {
-                    _userOrderSettlementUiState.value = UserOrderSettlementUiState.OrderSubmitSuccess(it!!)
+                    _userOrderSettlementUiState.value =
+                        UserOrderSettlementUiState.OrderSubmitSuccess(it!!)
                 }?.onError { msg ->
-                    _userOrderSettlementUiState.value = UserOrderSettlementUiState.Failed(msg.takeIf { it.isNotEmpty() } ?: "网络错误，请重试！")
+                    _userOrderSettlementUiState.value =
+                        UserOrderSettlementUiState.Failed(msg.takeIf { it.isNotEmpty() }
+                            ?: "网络错误，请重试！")
                 }
             }.onFailure {
                 if (it is CancellationException) return@onFailure

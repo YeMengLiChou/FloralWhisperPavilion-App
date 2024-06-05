@@ -35,24 +35,47 @@ data class OrderDetailDTO(
     val shopId: Long,
     val addressBookId: Long,
     val orderTime: String,
-    val checkoutTime: String,
+    val checkoutTime: String?,
     val payStatus: Int,
     val amount: Double,
     val remark: String?,
-    val phone: String,
-    val address: String,
-    val userName: String,
-    val consignee: String,
+    val phone: String?,
+    val address: String?,
+    val userName: String?,
+    val consignee: String?,
     val cancelReason: String?,
     val rejectionReason: String?,
     val cancelTime: String?,
-    val estimateDeliveryTime: String?,
+    val estimatedDeliveryTime: String?,
     val deliveryStatus: Int,
     val deliveryTime: String?,
     val packAmount: Double,
-    val orderDishes: String,
-    val orderDetailList: List<ItemDetail>
 )
+
+data class UserInfoDTO(
+    val id: Long,
+    val username: String,
+    val nickname: String,
+    val password: String,
+    val phone: String,
+    val sex: Int,
+    val avatar: String,
+    val createTime: String,
+    val updateTime: String,
+    val status: Boolean,
+)
+
+data class OrderShopDTO(
+    val id: Long,
+    val name: String,
+    val address: String,
+    val owner: String,
+    val startTime: String,
+    val endTime: String,
+    val status: Int,
+    val phone: String
+)
+
 
 
 /**
@@ -68,10 +91,19 @@ data class ItemDetail(
     val image: String,
     val orderId: Long,
     val shopId: Long,
-    val shopName: String,
+    val shopName: String?,
     val dishId: Long,
     val setmealId: Long,
     val dishFlavor: String?,
     val number: Int,
-    val amount: Double
+    val amount: Double,
+    val dish: CommodityDetailDTO
+)
+
+data class OrderRecordDTO(
+    val orders: OrderDetailDTO,
+    val user: UserInfoDTO,
+    val shop: OrderShopDTO,
+    val addressBook: AddressBookDTO?,
+    val orderDetailList: List<ItemDetail>
 )

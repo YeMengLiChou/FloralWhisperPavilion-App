@@ -55,7 +55,6 @@ object UserAddressManageNavigation : NavigationRoute {
 
     }
 
-    @SuppressLint("UnrememberedGetBackStackEntry")
     fun NavGraphBuilder.addressManageScreen(
         navHostController: NavHostController,
         parentRoute: String,
@@ -65,11 +64,10 @@ object UserAddressManageNavigation : NavigationRoute {
             arguments = this@UserAddressManageNavigation.arguments,
             deepLinks = this@UserAddressManageNavigation.deepLinks
         ) {
-            val backStackEntry = remember {
+            val backStackEntry = remember(it) {
                 navHostController.getBackStackEntry(parentRoute)
             }
 
-//            val fromRoute = it.arguments!!.getString(Arguments.FROM_ROUTE)!!
             // 假设是从上一个栈来的
             val fromBackStackEntry = navHostController.previousBackStackEntry
 

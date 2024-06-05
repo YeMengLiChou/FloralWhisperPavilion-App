@@ -171,7 +171,6 @@ fun ChooseShopScreen(
                     visible = selectedShopId != null, modifier = Modifier
                         .height(48.dp)
                         .align(Alignment.BottomCenter)
-                        .navigationBarsPadding()
                         .offset(x = 0.dp, y = -(16).dp)
                 ) {
                     Button(

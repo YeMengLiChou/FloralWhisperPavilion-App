@@ -41,7 +41,6 @@ class UserOrderViewModel
     private val shopRepository: ShopRepository,
     private val userOrderRepository: UserOrderRepository,
     private val cartRepository: UserShopCartRepository,
-    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _userOrderUiState = MutableStateFlow<UserOrderUiState>(UserOrderUiState.Loading)
@@ -67,6 +66,7 @@ class UserOrderViewModel
                 6 -> "已取消"
                 else -> throw IllegalStateException("order-status has a illegal value: ${record.orders.status}")
             },
+            status = record.orders.status,
             commodityList = record.orderDetailList.map {
                 CommodityItemVO(
                     id = it.dishId,
@@ -197,6 +197,16 @@ class UserOrderViewModel
         }
     }
 
+
+    private var clickOrderItem: UserOrderItemVo? = null
+
+    fun setClickOrderItem(orderItem: UserOrderItemVo) {
+        clickOrderItem = orderItem
+    }
+
+    fun getClickOrderItem(): UserOrderItemVo? {
+        return clickOrderItem
+    }
 
     override fun onCleared() {
         super.onCleared()

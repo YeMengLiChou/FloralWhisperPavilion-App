@@ -22,6 +22,7 @@ import cn.li.feature.menu.navigation.MenuNestedNavGraph.menuNestedNavGraph
 import cn.li.feature.mine.navigation.MineNestedNavRoute.nestedMineNavGraph
 import cn.li.feature.mine.navigation.UserAddressManageNavigation.navigateToAddressManage
 import cn.li.feature.shop.navigation.shopScreen
+import cn.li.feature.userorder.navigation.UserOrderDetailNavigation.userOrderDetailScreen
 import cn.li.feature.userorder.navigation.UserOrderNavigation.userOrderScreen
 import cn.li.feature.userorder.navigation.UserOrderSettlementNavigation
 import cn.li.feature.userorder.navigation.UserOrderSettlementNavigation.navigateToOrderSettlement
@@ -67,6 +68,8 @@ fun FwpNavigationHost(
         startDestination = startDestination,
         modifier = modifier,
     ) {
+        val globalRoute = "global"
+
         homeScreen(onLoginNavigation = {
             navController.navigateToLogin(
                 username = "",
@@ -76,6 +79,8 @@ fun FwpNavigationHost(
         })
 
         userOrderScreen(navController)
+        userOrderDetailScreen(navController)
+
         menuNestedNavGraph(
             navController = navController,
             onChooseAddressNavigate = {
@@ -101,7 +106,7 @@ fun FwpNavigationHost(
         userOrderSettlementScreen(navController = navController)
 
         nestedMineNavGraph(navController, onLoginNavigate = {
-            navController.navigateToLogin(username = "", password = ""  , navOptions = navOptions {
+            navController.navigateToLogin(username = "", password = "", navOptions = navOptions {
                 launchSingleTop = true
             })
         })

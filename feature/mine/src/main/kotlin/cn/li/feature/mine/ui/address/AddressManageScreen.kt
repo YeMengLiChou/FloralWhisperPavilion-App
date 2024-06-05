@@ -119,6 +119,7 @@ internal fun AddressManageScreen(
                 OutlinedButton(
                     onClick = {
                         selectedConfirmDialogVisibility = false
+                        onSelectedItem(selectedItem!!.id)
                     },
                     shape = RoundedCornerShape(8.dp),
                 ) {
@@ -153,7 +154,7 @@ internal fun AddressManageScreen(
                         text = selectedItem!!.let {
                             "${it.provinceName ?: ""}${it.cityName ?: ""}${it.districtName ?: ""}${it.detail}"
                         },
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
                     )
                 }
             },

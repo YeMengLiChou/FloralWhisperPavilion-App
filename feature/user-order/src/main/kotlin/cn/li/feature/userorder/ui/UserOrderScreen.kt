@@ -1,5 +1,7 @@
 package cn.li.feature.userorder.ui
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -59,7 +61,7 @@ import kotlin.math.min
 @Composable
 fun UserOrderScreen(
     uiState: UserOrderUiState,
-
+    onClickItem: (UserOrderItemVo) -> Unit,
     completeItems: LazyPagingItems<UserOrderItemVo>,
     uncompletedItems: LazyPagingItems<UserOrderItemVo>,
     modifier: Modifier = Modifier,
@@ -123,12 +125,17 @@ fun UserOrderScreen(
                     0 -> {
                         UncompletedOrderPage(
                             items = uncompletedItems,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
+                            onClick = onClickItem
                         )
                     }
 
                     1 -> {
-                        CompletedOrderPage(items = completeItems, modifier = Modifier.fillMaxSize())
+                        CompletedOrderPage(
+                            items = completeItems,
+                            modifier = Modifier.fillMaxSize(),
+                            onClick = onClickItem
+                        )
                     }
                 }
             }
@@ -140,13 +147,20 @@ fun UserOrderScreen(
 @Composable
 private fun UncompletedOrderPage(
     items: LazyPagingItems<UserOrderItemVo>,
+    onClick: (UserOrderItemVo) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
     LazyColumn(modifier = modifier) {
         if (items.loadState.refresh == LoadState.Loading) {
             item {
-                Column(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .height(240.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
                     CircularProgressIndicator()
                     Text(text = "加载中...")
                 }
@@ -170,26 +184,37 @@ private fun UncompletedOrderPage(
                 if (item != null) {
                     OrderItem(
                         item = item,
-                        modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                        modifier = Modifier
+                            .padding(top = 8.dp, start = 16.dp, end = 16.dp),
+                        onItemClick = {
+                            onClick(item)
+
+                        }
                     )
                 }
             }
         }
         if (items.loadState.append == LoadState.Loading) {
             item {
-                Column(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(240.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
                     CircularProgressIndicator()
                     Text(text = "加载中...")
                 }
             }
         }
     }
-
 }
 
 @Composable
 private fun CompletedOrderPage(
     items: LazyPagingItems<UserOrderItemVo>,
+    onClick: (UserOrderItemVo) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(modifier = modifier) {
@@ -219,7 +244,11 @@ private fun CompletedOrderPage(
                 if (item != null) {
                     OrderItem(
                         item = item,
-                        modifier = Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp)
+                        modifier = Modifier
+                            .padding(top = 8.dp, start = 8.dp, end = 8.dp),
+                        onItemClick = {
+                            onClick(item)
+                        }
                     )
                 }
             }
@@ -233,6 +262,10 @@ private fun CompletedOrderPage(
             }
         }
     }
+}
+
+fun OrderItem(item: UserOrderItemVo, modifier: Modifier) {
+
 }
 
 
@@ -242,6 +275,7 @@ private fun CompletedOrderPage(
 @Composable
 private fun OrderItem(
     item: UserOrderItemVo,
+    onItemClick: () -> Unit,
     modifier: Modifier = Modifier,
     constraintSet: ConstraintSet = UserOrderScreenDefaults.orderItemConstraintSet,
 ) {
@@ -252,7 +286,8 @@ private fun OrderItem(
         ),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
-        )
+        ),
+        onClick = onItemClick,
     ) {
         ConstraintLayout(
             constraintSet = constraintSet,
@@ -369,7 +404,8 @@ private fun OrderItemPreview() {
                 submitOrderTime = "",
                 commodityCount = 1,
                 shopAddress = "",
-                commodityList = listOf()
+                commodityList = listOf(),
+                status = 0
             ),
             modifier = Modifier
                 .fillMaxWidth()

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -398,6 +399,14 @@ private fun MenuTopBar(
                     },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                TextLabel(
+                    text = shopStatus,
+                    modifier = Modifier
+                        .padding(horizontal = 2.dp, vertical = 1.dp),
+                    fontSize = 10.sp,
+                    color = Color(0xff6b798e)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(text = shopName, fontSize = 20.sp, fontWeight = FontWeight(600))
                 Icon(
                     imageVector = Icons.Outlined.ChevronRight,
@@ -405,14 +414,7 @@ private fun MenuTopBar(
                     modifier = Modifier.padding(2.dp)
                 )
             }
-            TextLabel(
-                text = shopStatus,
-                modifier = Modifier
-                    .layoutId("status")
-                    .padding(horizontal = 2.dp, vertical = 1.dp),
-                fontSize = 10.sp,
-                color = Color.Black
-            )
+
         }
     }
 }
@@ -421,8 +423,8 @@ private fun MenuTopBar(
 object MenuScreenDefaults {
     @Composable
     fun topBarConstraintSet() = ConstraintSet {
-        val (tabsRef, searchRef, shopNameRef, statusRef) = createRefsFor(
-            "tabs", "search", "shopName", "status"
+        val (tabsRef, searchRef, shopNameRef) = createRefsFor(
+            "tabs", "search", "shopName",
         )
 
         constrain(tabsRef) {
@@ -438,10 +440,6 @@ object MenuScreenDefaults {
         constrain(shopNameRef) {
             start(4.dp)
             top.linkTo(tabsRef.bottom, 8.dp)
-        }
-        constrain(statusRef) {
-            start(4.dp)
-            top.linkTo(shopNameRef.bottom, 4.dp)
         }
     }
 

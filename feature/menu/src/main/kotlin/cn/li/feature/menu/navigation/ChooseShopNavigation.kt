@@ -1,6 +1,5 @@
 package cn.li.feature.menu.navigation
 
-import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,7 +47,6 @@ object ChooseShopNavigation : NavigationRoute {
         )
     }
 
-    @SuppressLint("UnrememberedGetBackStackEntry")
     fun NavGraphBuilder.chooseShopScreen(
         navController: NavHostController,
         parentRoute: String,
@@ -58,7 +56,7 @@ object ChooseShopNavigation : NavigationRoute {
             arguments = arguments,
             deepLinks = deepLinks
         ) {
-            val backStackEntry = remember {
+            val backStackEntry = remember(it) {
                 navController.getBackStackEntry(parentRoute)
             }
             val viewModel: MenuViewModel = hiltViewModel(backStackEntry)

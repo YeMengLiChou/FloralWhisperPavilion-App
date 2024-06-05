@@ -14,8 +14,10 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import androidx.navigation.navOptions
 import androidx.paging.compose.collectAsLazyPagingItems
 import cn.li.feature.userorder.UserOrderViewModel
+import cn.li.feature.userorder.navigation.UserOrderDetailNavigation.navigateToUserOrderDetail
 import cn.li.feature.userorder.ui.UserOrderScreen
 import cn.li.model.NavigationRoute
 import cn.li.model.constant.DEEP_LINK_PREFIX
@@ -30,7 +32,7 @@ object UserOrderNavigation : NavigationRoute {
     fun NavHostController.navigateToUserOrder(navOptions: NavOptions) = navigate(route, navOptions)
 
     fun NavGraphBuilder.userOrderScreen(
-        navController: NavHostController
+        navController: NavHostController,
     ) {
         composable(
             route = this@UserOrderNavigation.route,
@@ -38,15 +40,25 @@ object UserOrderNavigation : NavigationRoute {
             deepLinks = deepLinks
         ) {
 
-            UserOrderRoute()
+            val viewModel: UserOrderViewModel = hiltViewModel()
+            UserOrderRoute(
+                viewModel = viewModel,
+                onOrderDetailNavigate = {
+                    navController.navigateToUserOrderDetail(navOptions = navOptions {
+                        launchSingleTop = true
+                    })
+                }
+            )
         }
     }
 }
 
 @Composable
 fun UserOrderRoute(
-    viewModel: UserOrderViewModel = hiltViewModel()
-) {
+    onOrderDetailNavigate: () -> Unit,
+    viewModel: UserOrderViewModel = hiltViewModel(),
+
+    ) {
     val uiState by viewModel.userOrderUiState.collectAsState()
 
 
@@ -66,11 +78,9 @@ fun UserOrderRoute(
         uiState = uiState,
         completeItems = completedOrderItems,
         uncompletedItems = uncompletedOrderItems,
-        onUncompletedOrderSwitch = {
-
-        },
-        onHistoryOrderSwitch = {
-
-        },
+        onClickItem = {
+            viewModel.setClickOrderItem(it)
+            onOrderDetailNavigate()
+        }
     )
 }

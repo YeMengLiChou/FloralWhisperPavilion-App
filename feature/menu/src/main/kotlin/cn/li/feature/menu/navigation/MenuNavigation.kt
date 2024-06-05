@@ -1,10 +1,8 @@
 package cn.li.feature.menu.navigation
 
-import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,7 +32,6 @@ object MenuNavigation : NavigationRoute {
         navigate(this@MenuNavigation.route, navOptions)
     }
 
-    @SuppressLint("UnrememberedGetBackStackEntry")
     fun NavGraphBuilder.menuScreen(
         navController: NavHostController,
         onChooseAddressNavigate: () -> Unit,
@@ -46,7 +43,7 @@ object MenuNavigation : NavigationRoute {
             arguments = this@MenuNavigation.arguments,
             deepLinks = this@MenuNavigation.deepLinks
         ) {
-            val backStackEntry = remember {
+            val backStackEntry = remember(it) {
                 navController.getBackStackEntry(parentRoute)
             }
             val viewModel: MenuViewModel = hiltViewModel(backStackEntry)

@@ -1,5 +1,6 @@
 package cn.li.feature.menu.ui
 
+import android.util.Log
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -7,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import cn.li.data.repository.ShopRepository
 import cn.li.data.repository.UserShopCartRepository
 import cn.li.datastore.FwpCachedDataStore
+import cn.li.datastore.FwpPreferencesDataStore
+import cn.li.datastore.proto.UserPreferences
 import cn.li.model.CommodityItemDetailVO
 import cn.li.model.CommodityItemVO
 import cn.li.model.ShopCommodityItemVO
@@ -37,8 +40,9 @@ class MenuViewModel @Inject constructor(
     private val cachedDataStore: FwpCachedDataStore,
     private val shopRepository: ShopRepository,
     private val cartRepository: UserShopCartRepository,
+    private val userDataStore: FwpPreferencesDataStore
 
-    ) : ViewModel() {
+) : ViewModel() {
     companion object {
         const val TAG = "MenuViewModel"
     }
@@ -49,6 +53,9 @@ class MenuViewModel @Inject constructor(
     private val _menuUiState = MutableStateFlow<MenuUiState>(MenuUiState.Loading)
     val menuUiState = _menuUiState.asStateFlow()
 
+
+    val userLogined
+        get() = userDataStore.userLogined
 
     /**
      * 抽离出来，用于挂起获取数据， 请求商店商品列表+购物车数据
@@ -121,11 +128,12 @@ class MenuViewModel @Inject constructor(
 
         getShopGoodsWithCartInfoJob = viewModelScope.launch(Dispatchers.IO) {
             val shopId = checkNotNull(selectedShopInfo.value?.id)
-            runCatching {
-                suspendGetShopGoodsWithCartInfo(shopId)
-            }.onSuccess {
-                val (goodsList, cartInfo) = it
-                if (goodsList.code == 200 && cartInfo.code == 200) {
+
+            if (userLogined) {
+                runCatching {
+                    suspendGetShopGoodsWithCartInfo(shopId)
+                }.onSuccess {
+                    val (goodsList, cartInfo) = it
 
                     // 缓存数据
                     cachedShopCommodityItemList = goodsList.data!!
@@ -135,13 +143,26 @@ class MenuViewModel @Inject constructor(
                         shopInfo = _selectedShopInfo.value!!,
                         goods = transformToCommodityItemVO(
                             goodsList = goodsList.data!!,
-                            cartInfo = cartInfo.data!!
+                            cartInfo = cartInfo.data ?: emptyList()
                         ),
-                        cartInfo = cartInfo.data!!
+                        cartInfo = cartInfo.data ?: emptyList()
                     )
-                } else {
-                    _menuUiState.value = MenuUiState.Failed(
-                        "获取信息失败，请稍后再试"
+                }
+            } else {
+                runCatching {
+                    shopRepository.getCommodityItemList(shopId = shopId)
+                }.onSuccess { apiResult ->
+                    // 缓存数据
+                    cachedShopCommodityItemList = apiResult.data!!
+                    cachedCartCommodityItemList = emptyList()
+
+                    _menuUiState.value = MenuUiState.Success(
+                        shopInfo = _selectedShopInfo.value!!,
+                        goods = transformToCommodityItemVO(
+                            goodsList = cachedShopCommodityItemList,
+                            cartInfo = cachedCartCommodityItemList
+                        ),
+                        cartInfo = cachedCartCommodityItemList
                     )
                 }
             }.onFailure {
@@ -292,7 +313,14 @@ class MenuViewModel @Inject constructor(
                                 description = it.description,
                                 price = it.price,
                                 status = it.status,
-                                isSetmeal = true
+                                isSetmeal = true,
+                                mainName = it.mainName,
+                                mainColor = it.mainColor,
+                                mainStyle = it.mainStyle,
+                                mainDecorate = it.mainDecorate,
+                                mainNumber = it.mainNumber,
+                                mainOrigin = it.mainOrigin,
+                                mainPeople = it.mainPeople
                             )
                         }
                     )

@@ -17,6 +17,11 @@ data class UserOrderItemVo(
     val statusText: String,
     val completedOrderTime: String?,
     val submitOrderTime: String,
+    val deliveryText: String,
+    val deliveryAddress: String?,
+    val consignee: String?,
+    val phone: String?,
+    val remark: String,
     val commodityCount: Int,
     val commodityList: List<CommodityItemVO>
 )

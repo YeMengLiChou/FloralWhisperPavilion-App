@@ -31,5 +31,12 @@ data class CommodityItemDetailVO(
     val description: String,
     val price: Double,
     val status: Int,
-    val isSetmeal: Boolean
+    val isSetmeal: Boolean,
+    val mainName: String,
+    val mainNumber: Int,
+    val mainColor: String,
+    val mainOrigin: String,
+    val mainDecorate: String,
+    val mainPeople: String,
+    val mainStyle: String,
 )

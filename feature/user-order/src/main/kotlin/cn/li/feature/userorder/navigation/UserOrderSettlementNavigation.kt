@@ -12,7 +12,9 @@ import androidx.navigation.NavOptions
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.navOptions
 import cn.li.feature.userorder.UserOrderViewModel
+import cn.li.feature.userorder.navigation.UserOrderDetailNavigation.navigateToUserOrderDetail
 import cn.li.feature.userorder.ui.UserSettlementOrderScreen
 import cn.li.model.NavigationRoute
 import cn.li.model.constant.DEEP_LINK_PREFIX
@@ -61,7 +63,8 @@ object UserOrderSettlementNavigation : NavigationRoute {
     }
 
     fun NavGraphBuilder.userOrderSettlementScreen(
-        navController: NavHostController
+        navController: NavHostController,
+        onOrderSubmitNavigate: (orderId: Long) -> Unit,
     ) {
         composable(
             route = this@UserOrderSettlementNavigation.route,
@@ -75,7 +78,8 @@ object UserOrderSettlementNavigation : NavigationRoute {
             UserOrderSettlementRoute(
                 shopId = shopId,
                 addressId = addressId,
-                onBackClick = navController::popBackStack
+                onBackClick = navController::popBackStack,
+                onOrderSubmitNavigate = onOrderSubmitNavigate
             )
         }
     }
@@ -87,6 +91,7 @@ internal fun UserOrderSettlementRoute(
     shopId: Long,
     addressId: Long?,
     onBackClick: () -> Unit,
+    onOrderSubmitNavigate: (orderId: Long) -> Unit,
     viewModel: UserOrderViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.userOrderSettlementUiState.collectAsStateWithLifecycle()
@@ -101,6 +106,6 @@ internal fun UserOrderSettlementRoute(
             viewModel.submitUserOrder(it)
         },
         onBackClick = onBackClick,
-        onOrderSubmitNavigate = { /*TODO*/}
+        onOrderSubmitNavigate = onOrderSubmitNavigate
     )
 }

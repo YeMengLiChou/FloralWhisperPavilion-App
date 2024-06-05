@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface UserOrderRepository {
 
-    suspend fun getOrderDetail(id: Long): ApiResult<OrderDetailDTO>
+    suspend fun getOrderDetail(id: Long): ApiResult<OrderRecordDTO>
 
     suspend fun cancelOrder(id: Long): ApiResult<Nothing>
 
@@ -31,7 +31,7 @@ interface UserOrderRepository {
         pageNo: Int, pageSize: Int
     ): ApiResult<ApiPagination1<OrderRecordDTO>>
 
-    suspend fun payOrder(): ApiResult<Nothing>
+    suspend fun payOrder(orderNumber: String): ApiResult<Nothing>
 
     suspend fun submitOrder(dto: OrderSubmitDTO): ApiResult<OrderSubmitResultDTO>
 

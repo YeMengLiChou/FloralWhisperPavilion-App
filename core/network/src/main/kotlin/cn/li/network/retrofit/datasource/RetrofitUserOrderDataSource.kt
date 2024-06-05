@@ -23,7 +23,7 @@ class RetrofitUserOrderDataSource @Inject constructor(
     private val api = retrofit.create(UserOrderApi::class.java)
 
 
-    override suspend fun getOrderDetail(id: Long): ApiResult<OrderDetailDTO> {
+    override suspend fun getOrderDetail(id: Long): ApiResult<OrderRecordDTO> {
         return api.getOrderDetail(id)
     }
 
@@ -35,8 +35,8 @@ class RetrofitUserOrderDataSource @Inject constructor(
         return api.getHistoryOrders(queryMap)
     }
 
-    override suspend fun payOrder(): ApiResult<Nothing> {
-        return api.payOrder()
+    override suspend fun payOrder(orderNumber: String): ApiResult<Nothing> {
+        return api.payOrder(orderNumber)
     }
 
     override suspend fun submitOrder(dto: OrderSubmitDTO): ApiResult<OrderSubmitResultDTO> {

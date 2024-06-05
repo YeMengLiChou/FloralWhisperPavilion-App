@@ -56,6 +56,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.layoutId
+import cn.li.common.ext.cast
 import cn.li.common.ext.sumAmountOf
 import cn.li.core.ui.base.ClearableTextFiled
 import cn.li.core.ui.base.LToast
@@ -110,7 +111,7 @@ fun UserSettlementOrderScreen(
     uiState: UserOrderSettlementUiState,
     onBackClick: () -> Unit,
     onSettlementClick: (OrderSubmitDTO) -> Unit,
-    onOrderSubmitNavigate: () -> Unit,
+    onOrderSubmitNavigate: (orderId: Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
 
@@ -142,7 +143,7 @@ fun UserSettlementOrderScreen(
             delay(2000L)
             // 然后跳换到订单详情
             payingVisibility = false
-            onOrderSubmitNavigate()
+            onOrderSubmitNavigate(uiState.cast<UserOrderSettlementUiState.OrderSubmitSuccess>()!!.order.id)
         }
     }
 

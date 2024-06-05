@@ -24,7 +24,7 @@ class ApiUserOrderRepository
 
 
 
-    override suspend fun getOrderDetail(id: Long): ApiResult<OrderDetailDTO> {
+    override suspend fun getOrderDetail(id: Long): ApiResult<OrderRecordDTO> {
         return dataSource.getOrderDetail(id)
     }
 
@@ -103,8 +103,8 @@ class ApiUserOrderRepository
         )
     }
 
-    override suspend fun payOrder(): ApiResult<Nothing> {
-        return dataSource.payOrder()
+    override suspend fun payOrder(orderNumber: String): ApiResult<Nothing> {
+        return dataSource.payOrder(orderNumber)
     }
 
     override suspend fun submitOrder(dto: OrderSubmitDTO): ApiResult<OrderSubmitResultDTO> {

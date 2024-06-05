@@ -4,15 +4,20 @@ package cn.li.feature.menu.ui
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.core.TweenSpec
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -22,8 +27,10 @@ import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,10 +41,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -208,6 +217,14 @@ private fun CommodityDetail(
                 color = Color.Gray,
                 modifier = Modifier.padding(top = 8.dp, start = 12.dp, end = 12.dp)
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            CommodityParam(
+                item = item,
+                modifier = Modifier
+                    .padding(top = 16.dp, start = 12.dp, end = 12.dp)
+                    .height(IntrinsicSize.Min)
+            )
+            Spacer(modifier = Modifier.height(20.dp))
         }
 
         var addCartCount by remember(key1 = item.id) {
@@ -290,6 +307,91 @@ fun BottomAddCart(
         }
         Spacer(modifier = Modifier.height(8.dp))
     }
+}
+
+@Composable
+private fun CommodityParam(
+    item: CommodityItemDetailVO,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Text(text = "商品参数")
+        Spacer(modifier = Modifier.height(8.dp))
+        Table(
+            items = listOf(
+                "主花材" to item.mainName,
+                "枝数/朵数" to item.mainNumber.toString(),
+                "产地" to item.mainOrigin,
+                "色系" to item.mainColor,
+                "配花/配叶" to item.mainDecorate,
+                "款式" to item.mainStyle,
+                "适用人群" to item.mainPeople
+            )
+        )
+
+    }
+}
+
+
+@Composable
+fun Table(
+    items: List<Pair<String, String>>,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .border(
+                0.5.dp,
+                color = Color.LightGray,
+                shape = RoundedCornerShape(8.dp)
+            )
+    ) {
+        items.forEachIndexed { index, pair ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min)
+            ) {
+                Text(
+                    text = pair.first,
+                    modifier = Modifier
+                        .fillMaxWidth(0.3f)
+                        .background(Color(0xfff0f0f0))
+                        .padding(start = 8.dp, top = 4.dp, bottom = 4.dp)
+                        .height(30.dp)
+                        .wrapContentHeight(Alignment.CenterVertically),
+                    color = Color.Gray
+                )
+                VerticalDivider(
+                    thickness = 0.5.dp,
+                    color = Color.LightGray,
+                )
+                Text(
+                    text = pair.second,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, top = 4.dp, bottom = 4.dp)
+                        .height(30.dp)
+                        .wrapContentHeight(Alignment.CenterVertically)
+                )
+            }
+            if (index != items.size - 1) {
+                HorizontalDivider(
+                    modifier = Modifier.fillMaxWidth(),
+                    thickness = 0.5.dp,
+                    color = Color.LightGray
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+@Preview(showBackground = true)
+private fun TablePreview() {
+    Table(items = listOf("1" to "2", "3" to "4"))
 }
 
 

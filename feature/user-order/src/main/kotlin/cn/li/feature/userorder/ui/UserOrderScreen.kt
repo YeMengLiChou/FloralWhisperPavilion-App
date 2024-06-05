@@ -175,6 +175,7 @@ private fun UncompletedOrderPage(
                             .fillMaxWidth()
                             .height(240.dp)
                             .wrapContentSize(Alignment.Center),
+                        color = Color.LightGray
                     )
                 }
             }
@@ -220,7 +221,13 @@ private fun CompletedOrderPage(
     LazyColumn(modifier = modifier) {
         if (items.loadState.refresh == LoadState.Loading) {
             item {
-                Column(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .height(240.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
                     CircularProgressIndicator()
                     Text(text = "加载中...")
                 }
@@ -235,6 +242,7 @@ private fun CompletedOrderPage(
                             .fillMaxWidth()
                             .height(240.dp)
                             .wrapContentSize(Alignment.Center),
+                        color = Color.Gray
                     )
                 }
             }
@@ -255,17 +263,16 @@ private fun CompletedOrderPage(
         }
         if (items.loadState.append == LoadState.Loading) {
             item {
-                Column(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     CircularProgressIndicator()
                     Text(text = "加载中...")
                 }
             }
         }
     }
-}
-
-fun OrderItem(item: UserOrderItemVo, modifier: Modifier) {
-
 }
 
 
@@ -384,33 +391,34 @@ object UserOrderScreenDefaults {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun OrderItemPreview() {
-    Box(
-        modifier = Modifier
-            .padding(vertical = 8.dp)
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        OrderItem(
-            item = UserOrderItemVo(
-                orderId = 1L,
-                orderTotalAmount = "100.00",
-                orderNumber = "123456789",
-                shopName = "店铺名称",
-                statusText = "待付款",
-                completedOrderTime = "",
-                submitOrderTime = "",
-                commodityCount = 1,
-                shopAddress = "",
-                commodityList = listOf(),
-                status = 0
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(128.dp)
-                .padding(8.dp),
-        )
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//private fun OrderItemPreview() {
+//    Box(
+//        modifier = Modifier
+//            .padding(vertical = 8.dp)
+//            .fillMaxSize(),
+//        contentAlignment = Alignment.Center
+//    ) {
+//        OrderItem(
+//            item = UserOrderItemVo(
+//                orderId = 1L,
+//                orderTotalAmount = "100.00",
+//                orderNumber = "123456789",
+//                shopName = "店铺名称",
+//                statusText = "待付款",
+//                completedOrderTime = "",
+//                submitOrderTime = "",
+//                commodityCount = 1,
+//                shopAddress = "",
+//                commodityList = listOf(),
+//                status = 0
+//            ),
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(128.dp)
+//                .padding(8.dp),
+//            onItemClick = {}
+//        )
+//    }
+//}

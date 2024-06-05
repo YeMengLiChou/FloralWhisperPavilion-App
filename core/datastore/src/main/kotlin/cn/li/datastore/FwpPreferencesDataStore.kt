@@ -9,9 +9,11 @@ import cn.li.datastore.proto.copy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,11 +33,7 @@ class FwpPreferencesDataStore @Inject constructor(
      * 用户数据流，最新数据
      * */
     val userDataStateFlow
-        get() = userPreferences.data.map {
-            Log.d(TAG, "user-data: $it")
-            currentUserData = it
-            it
-        }.stateIn(
+        get() = userPreferences.data.stateIn(
             scope = scope,
             started = SharingStarted.WhileSubscribed(3_000),
             initialValue = UserPreferences.getDefaultInstance()
@@ -43,7 +41,9 @@ class FwpPreferencesDataStore @Inject constructor(
 
     val userDataFlow get() = userPreferences.data
 
-    var currentUserData: UserPreferences = UserPreferences.getDefaultInstance()
+    var currentUserData: UserPreferences = runBlocking { userPreferences.data.first() }
+
+    val userLogined = currentUserData.userId != 0L
 
     /**
      * 更新用户数据，token 和 id

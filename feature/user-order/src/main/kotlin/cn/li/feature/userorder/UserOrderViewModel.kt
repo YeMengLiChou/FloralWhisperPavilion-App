@@ -66,7 +66,17 @@ class UserOrderViewModel
                 6 -> "已取消"
                 else -> throw IllegalStateException("order-status has a illegal value: ${record.orders.status}")
             },
+            remark = record.orders.remark ?: "",
             status = record.orders.status,
+            deliveryText = when (record.orders.deliveryStatus) {
+                2 -> "自取"
+                else -> "门店配送"
+            },
+            deliveryAddress = record.addressBook?.let {
+                "${it.provinceName}${it.cityName}${it.districtName}${it.detail}"
+            },
+            consignee = record.addressBook?.consignee,
+            phone = record.addressBook?.phone,
             commodityList = record.orderDetailList.map {
                 CommodityItemVO(
                     id = it.dishId,
@@ -165,8 +175,6 @@ class UserOrderViewModel
     }
 
 
-    private var submitUserOrderJob: Job? = null
-
     /**
      * 提交订单
      *
@@ -179,7 +187,9 @@ class UserOrderViewModel
 
         submitUserOrderJob = viewModelScope.launch(Dispatchers.IO) {
             runCatching {
-                userOrderRepository.submitOrder(dto = submitInfo)
+                val orderInfo = userOrderRepository.submitOrder(dto = submitInfo)
+                userOrderRepository.payOrder(orderInfo.data!!.orderNumber)
+                orderInfo
             }.onSuccess { apiResult ->
                 apiResult.onSuccess {
                     _userOrderSettlementUiState.value =
@@ -197,16 +207,51 @@ class UserOrderViewModel
         }
     }
 
+    private val _userOrderDetailUiState =
+        MutableStateFlow<UserOrderDetailUiState>(UserOrderDetailUiState.Loading)
+    val userOrderDetailUiState = _userOrderDetailUiState.asStateFlow()
+
+    private var submitUserOrderJob: Job? = null
 
     private var clickOrderItem: UserOrderItemVo? = null
 
     fun setClickOrderItem(orderItem: UserOrderItemVo) {
         clickOrderItem = orderItem
+        _userOrderDetailUiState.value = UserOrderDetailUiState.Success(orderItem)
     }
 
     fun getClickOrderItem(): UserOrderItemVo? {
         return clickOrderItem
     }
+
+    private var getOrderDetailJob: Job? = null
+
+    fun getOrderDetailByOrderId(orderId: Long) {
+        _userOrderDetailUiState.value = UserOrderDetailUiState.Loading
+        getOrderDetailJob?.cancel()
+
+        getOrderDetailJob = viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                userOrderRepository.getOrderDetail(id = orderId)
+            }.onSuccess { apiResult ->
+                apiResult.onSuccess {
+                    checkNotNull(it)
+                    _userOrderDetailUiState.value =
+                        UserOrderDetailUiState.Success(transformOrderVo(it))
+                }?.onError {
+                    _userOrderDetailUiState.value =
+                        UserOrderDetailUiState.Failed(it.takeIf { it.isNotEmpty() }
+                            ?: "网络错误，请重试！")
+                }
+            }.onFailure {
+                if (it is CancellationException) return@onFailure
+                Log.d(TAG, "getOrderDetailByOrderId: $it")
+                _userOrderDetailUiState.value =
+                    UserOrderDetailUiState.Failed(it.message ?: "网络错误，请重试！")
+            }
+        }
+    }
+
 
     override fun onCleared() {
         super.onCleared()
@@ -244,3 +289,9 @@ sealed interface UserOrderSettlementUiState {
     data class Failed(val msg: String) : UserOrderSettlementUiState
 }
 
+sealed interface UserOrderDetailUiState {
+    data object Loading : UserOrderDetailUiState
+    data class Success(val data: UserOrderItemVo) : UserOrderDetailUiState
+
+    data class Failed(val msg: String) : UserOrderDetailUiState
+}

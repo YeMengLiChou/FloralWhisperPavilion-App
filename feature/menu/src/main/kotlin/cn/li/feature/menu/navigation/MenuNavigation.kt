@@ -1,10 +1,13 @@
 package cn.li.feature.menu.navigation
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
@@ -12,6 +15,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.navOptions
+import cn.li.core.ui.base.LToast
 import cn.li.feature.menu.navigation.ChooseShopNavigation.navigateToChooseShop
 import cn.li.feature.menu.ui.MenuScreen
 import cn.li.feature.menu.ui.MenuViewModel
@@ -35,6 +39,7 @@ object MenuNavigation : NavigationRoute {
     fun NavGraphBuilder.menuScreen(
         navController: NavHostController,
         onChooseAddressNavigate: () -> Unit,
+        onLoginNavigate: () -> Unit,
         onSettlementNavigate: (shopId: Long, addressId: Long?) -> Unit,
         parentRoute: String,
     ) {
@@ -61,8 +66,8 @@ object MenuNavigation : NavigationRoute {
                 onChooseAddressNavigate = onChooseAddressNavigate,
                 onSettlementNavigate = onSettlementNavigate,
                 viewModel = viewModel,
-
-                )
+                onLoginNavigate = onLoginNavigate
+            )
         }
     }
 }
@@ -73,6 +78,7 @@ fun MenuRoute(
     onSettlementNavigate: (shopId: Long, addressId: Long?) -> Unit,
     onChooseShopNavigate: () -> Unit,
     onChooseAddressNavigate: () -> Unit,
+    onLoginNavigate: () -> Unit,
     viewModel: MenuViewModel
 ) {
     val selectedShopInfo by viewModel.selectedShopInfo.collectAsStateWithLifecycle()
@@ -96,6 +102,17 @@ fun MenuRoute(
         viewModel.getShopGoodsWithCartInfo()
     }
 
+    var shouldShowToast by remember {
+        mutableStateOf(false)
+    }
+
+    if (shouldShowToast) {
+        LToast(text = "请先登录!", duration = Toast.LENGTH_SHORT)
+        shouldShowToast = false
+        onLoginNavigate()
+    }
+
+
     MenuScreen(
         uiState = uiState,
         commodityDetailUiState = commodityDetailUiState,
@@ -113,22 +130,49 @@ fun MenuRoute(
             viewModel.hideCommodityDetail()
         },
         onAddCommodityToCart = { commodityId, addCount ->
-            viewModel.addCommodityToCart(commodityId, addCount)
+            if (viewModel.userLogined) {
+                viewModel.addCommodityToCart(commodityId, addCount)
+            } else {
+                shouldShowToast = true
+                true
+            }
         },
         onChooseAddressNavigate = {
-            if (viewModel.selectedAddressId == null) {
-                onChooseAddressNavigate()
+            if (viewModel.userLogined) {
+                if (viewModel.selectedAddressId == null) {
+                    onChooseAddressNavigate()
+                }
+            } else {
+                shouldShowToast = true
             }
         },
         onCartCommodityCountIncrease = { itemId: Long, number: Int ->
-            viewModel.changeCartItemCount(itemId, number)
+            if (viewModel.userLogined) {
+                viewModel.changeCartItemCount(itemId, number)
+            } else {
+                shouldShowToast = true
+            }
         },
         onCartCommodityCountDecrease = { itemId: Long, number: Int ->
-            viewModel.changeCartItemCount(itemId, number)
+            if (viewModel.userLogined) {
+                viewModel.changeCartItemCount(itemId, number)
+            } else {
+                shouldShowToast = true
+            }
         },
         onCartCommodityDeleteRequest = { itemId: Long ->
-            viewModel.changeCartItemCount(itemId, 0)
+            if (viewModel.userLogined) {
+                viewModel.changeCartItemCount(itemId, 0)
+            } else {
+                shouldShowToast = true
+            }
         },
-        onCartClearRequest = viewModel::clearCart
+        onCartClearRequest = {
+            if (viewModel.userLogined) {
+                viewModel.clearCart()
+            } else {
+                shouldShowToast = true
+            }
+        }
     )
 }

@@ -6,10 +6,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavGraph
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.navOptions
+import cn.li.common.ext.cast
 import cn.li.feature.employee.order.navigation.employeeOrderScreen
 import cn.li.feature.home.navigation.homeScreen
 import cn.li.feature.login.navigation.LoginNavigationRoute
@@ -18,10 +20,12 @@ import cn.li.feature.login.navigation.LoginNavigationRoute.navigateToLogin
 import cn.li.feature.login.navigation.RegisterNavigationRoute
 import cn.li.feature.login.navigation.RegisterNavigationRoute.navigateToRegister
 import cn.li.feature.login.navigation.RegisterNavigationRoute.registerScreen
+import cn.li.feature.menu.navigation.MenuNestedNavGraph
 import cn.li.feature.menu.navigation.MenuNestedNavGraph.menuNestedNavGraph
 import cn.li.feature.mine.navigation.MineNestedNavRoute.nestedMineNavGraph
 import cn.li.feature.mine.navigation.UserAddressManageNavigation.navigateToAddressManage
 import cn.li.feature.shop.navigation.shopScreen
+import cn.li.feature.userorder.navigation.UserOrderDetailNavigation.navigateToUserOrderDetail
 import cn.li.feature.userorder.navigation.UserOrderDetailNavigation.userOrderDetailScreen
 import cn.li.feature.userorder.navigation.UserOrderNavigation.userOrderScreen
 import cn.li.feature.userorder.navigation.UserOrderSettlementNavigation
@@ -68,9 +72,9 @@ fun FwpNavigationHost(
         startDestination = startDestination,
         modifier = modifier,
     ) {
-        val globalRoute = "global"
 
-        homeScreen(onLoginNavigation = {
+        homeScreen(
+            onLoginNavigation = {
             navController.navigateToLogin(
                 username = "",
                 password = "",
@@ -98,12 +102,32 @@ fun FwpNavigationHost(
                         launchSingleTop = true
                     }
                 )
+            },
+            onLoginNavigate = {
+                navController.navigateToLogin(
+                    username = "",
+                    password = "",
+                    navOptions = navOptions {
+                        launchSingleTop = true
+                    }
+                )
             }
         )
 
         employeeOrderScreen()
         shopScreen()
-        userOrderSettlementScreen(navController = navController)
+        userOrderSettlementScreen(
+            navController = navController,
+            onOrderSubmitNavigate = { orderId: Long ->
+                navController.navigateToUserOrderDetail(
+                    orderId = orderId,
+                    navOptions = navOptions {
+                        launchSingleTop = true
+                        popUpTo(navController.findDestination(MenuNestedNavGraph.route).cast<NavGraph>()?.startDestinationRoute!!)
+                    }
+                )
+
+            })
 
         nestedMineNavGraph(navController, onLoginNavigate = {
             navController.navigateToLogin(username = "", password = "", navOptions = navOptions {

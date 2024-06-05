@@ -33,6 +33,9 @@ afterEvaluate {
     tasks.named("kspDebugKotlin").configure {
         dependsOn(tasks.named("generateDebugProto"))
     }
+    tasks.named("kspReleaseKotlin").configure {
+        dependsOn(tasks.named("generateReleaseProto"))
+    }
 }
 
 // 将生成的 proto 文件加入到 sourceSets 中

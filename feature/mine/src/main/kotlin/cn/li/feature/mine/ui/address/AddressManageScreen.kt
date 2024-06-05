@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddBusiness
 import androidx.compose.material.icons.outlined.EditNote
@@ -33,7 +34,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -116,12 +119,13 @@ internal fun AddressManageScreen(
         AlertDialog(
             onDismissRequest = { /**/ },
             confirmButton = {
-                OutlinedButton(
+                Button(
                     onClick = {
                         selectedConfirmDialogVisibility = false
                         onSelectedItem(selectedItem!!.id)
                     },
                     shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xffedcc7b))
                 ) {
                     Text(text = "确认")
                 }
@@ -140,22 +144,34 @@ internal fun AddressManageScreen(
             },
             title = {
                 Text(
-                    text = "请确认您的收获信息",
+                    text = "请确认您的收货信息",
                     fontSize = 18.sp,
                     modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             },
             text = {
                 Column {
-                    Text(text = "收货地址：", fontSize = 16.sp)
+                    Text(text = "收货地址：", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = selectedItem!!.let {
-                            "${it.provinceName ?: ""}${it.cityName ?: ""}${it.districtName ?: ""}${it.detail}"
-                        },
-                        fontSize = 14.sp,
-                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp)
+                    ) {
+                        Text(
+                            text = selectedItem!!.let {
+                                "${it.provinceName ?: ""}${it.cityName ?: ""}${it.districtName ?: ""}${it.detail}"
+                            },
+                            fontSize = 14.sp,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "${selectedItem!!.consignee} " +
+                                    "${if (selectedItem!!.sex.toInt() == UserLoginResult.SEX_MALE) "先生" else "小姐"} " +
+                                    " ${selectedItem!!.phone}", fontSize = 16.sp
+                        )
+                    }
                 }
             },
             shape = RoundedCornerShape(8.dp)
@@ -319,21 +335,21 @@ private fun AddressItem(
             fontSize = 14.sp
         )
 
-        // 标签
-        item.label?.let {
-            TextLabel(
-                text = it,
-                modifier = Modifier
-                    .constrainAs(labelRef) {
-                        baseline.linkTo(phoneRef.baseline)
-                        start.linkTo(phoneRef.end, 4.dp)
-                        end.linkTo(editIconRef.start)
-                        horizontalBias = 0f
-                    }
-                    .padding(horizontal = 4.dp, vertical = 2.dp),
-                fontSize = 16.sp
-            )
-        }
+//        // 标签
+//        item.label?.let {
+//            TextLabel(
+//                text = it,
+//                modifier = Modifier
+//                    .constrainAs(labelRef) {
+//                        baseline.linkTo(phoneRef.baseline)
+//                        start.linkTo(phoneRef.end, 4.dp)
+//                        end.linkTo(editIconRef.start)
+//                        horizontalBias = 0f
+//                    }
+//                    .padding(horizontal = 4.dp, vertical = 2.dp),
+//                fontSize = 16.sp
+//            )
+//        }
 
         IconButton(
             onClick = { onEditRequest(item) },

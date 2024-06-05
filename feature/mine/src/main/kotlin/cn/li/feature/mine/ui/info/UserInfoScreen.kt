@@ -181,7 +181,7 @@ internal fun UserInfoScreen(
                 mutableStateOf(false)
             }
             var changedNickname by remember {
-                mutableStateOf("")
+                mutableStateOf(userData.nickname)
             }
 
             NicknameUpdateDialog(
@@ -192,11 +192,12 @@ internal fun UserInfoScreen(
                 },
                 onDismissRequest = {
                     nicknameDialogState = false
-                    changedNickname = ""
+                    changedNickname = userData.nickname
                 },
                 onConfirm = {
                     onUpdateNickname(changedNickname)
-                })
+                }
+            )
 
             LoadingBottomSheetLayout(
                 show = false,
@@ -271,7 +272,7 @@ internal fun UserInfoScreen(
                                 sex = selectedSex,
                                 dropdownMenuShowState = dropdownMenuState,
                                 onShowRequest = {
-                                    dropdownMenuState = false
+                                    dropdownMenuState = true
                                 },
                                 onDismissRequest = {
                                     dropdownMenuState = false

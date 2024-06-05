@@ -1,5 +1,6 @@
 package cn.li.feature.menu.ui
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -143,7 +145,7 @@ fun MenuScreen(
     }
 
     // 侧边栏
-    val categoriesTabText = remember(key1 = cachedData) {
+    val categoriesTabText = remember(key1 = cachedData?.goods) {
         cachedData?.goods?.map { it.categoryName } ?: emptyList()
     }
 
@@ -238,6 +240,11 @@ fun MenuScreen(
                     },
                     modifier = Modifier.fillMaxSize()
                 ) {
+
+                    SideEffect {
+                        Log.d("MenuScreen", "MenuScreen: $categoriesTabText, ${cachedData?.goods}")
+                    }
+
                     Column(modifier = Modifier.fillMaxSize()) {
                         MenuTopBar(
                             modifier = Modifier
@@ -278,26 +285,30 @@ fun MenuScreen(
                                     )
                                 },
                                 items = { index, _ ->
-                                    cachedData?.goods?.get(index)?.let { goods ->
-                                        Column {
-                                            goods.items.forEach { item ->
-                                                CommodityItem(
-                                                    imageUrl = item.imageUrl,
-                                                    name = item.name,
-                                                    price = "¥${item.price}",
-                                                    cartCount = item.cartCount,
-                                                    description = item.description,
-                                                    onAddClick = {
-                                                        onCommodityDetailShow(item.id)
-                                                    },
-                                                    modifier = Modifier
-                                                        .padding(
-                                                            top = 12.dp,
-                                                            start = 16.dp,
-                                                            bottom = 16.dp,
+                                    cachedData?.goods?.let { list ->
+                                        if (index < list.size) {
+                                            list[index].let { goods ->
+                                                Column {
+                                                    goods.items.forEach { item ->
+                                                        CommodityItem(
+                                                            imageUrl = item.imageUrl,
+                                                            name = item.name,
+                                                            price = "¥${item.price}",
+                                                            cartCount = item.cartCount,
+                                                            description = item.description,
+                                                            onAddClick = {
+                                                                onCommodityDetailShow(item.id)
+                                                            },
+                                                            modifier = Modifier
+                                                                .padding(
+                                                                    top = 12.dp,
+                                                                    start = 16.dp,
+                                                                    bottom = 16.dp,
+                                                                )
+                                                                .height(128.dp)
                                                         )
-                                                        .height(128.dp)
-                                                )
+                                                    }
+                                                }
                                             }
                                         }
                                     }

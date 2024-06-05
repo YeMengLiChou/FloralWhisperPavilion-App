@@ -431,12 +431,13 @@ private fun OrderDelivery(
             modifier = Modifier.fillMaxWidth(),
             fontSize = 14.sp
         )
-        Text(text = "由 ", color = Color.Gray, fontSize = 14.sp)
-        Text(text = shopName, fontSize = 15.sp)
-        Text(text = " 送出", color = Color.Gray, fontSize = 14.sp)
+        Row {
+            Text(text = "由 ", color = Color.Gray, fontSize = 14.sp)
+            Text(text = shopName, fontSize = 15.sp)
+            Text(text = " 送出", color = Color.Gray, fontSize = 14.sp)
+        }
     }
 }
-
 
 
 /**
